@@ -1,0 +1,14 @@
+[nodes.a]
+me = true
+domain = "a.example.com"
+disabled = false
+
+[nodes.b]
+me = false
+domain = "b.example.com"
+disabled = false
+
+[nodes.c]
+me = false
+domain = "c.example.com"
+disabled = false
