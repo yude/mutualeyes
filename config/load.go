@@ -1,15 +1,12 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"reflect"
 	"sort"
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	Types "github.com/yude/kakashiz/types"
 )
 
 func Load() {
@@ -24,42 +21,42 @@ func Load() {
 		log.Fatal(err)
 	}
 
-	var config Types.Config
+	config := GetConfig()
 	meta, err := toml.DecodeFile(f, &config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	indent := strings.Repeat(" ", 14)
+	// indent := strings.Repeat(" ", 14)
 
-	typ, val := reflect.TypeOf(config), reflect.ValueOf(config)
-	for i := 0; i < typ.NumField(); i++ {
-		indent := indent
-		if i == 0 {
-			indent = strings.Repeat(" ", 7)
-		}
-		fmt.Printf("%s%-11s → %v\n", indent, typ.Field(i).Name, val.Field(i).Interface())
-	}
+	// typ, val := reflect.TypeOf(*config), reflect.ValueOf(*config)
+	// // for i := 0; i < typ.NumField(); i++ {
+	// // 	indent := indent
+	// // 	if i == 0 {
+	// // 		indent = strings.Repeat(" ", 7)
+	// // 	}
+	// // 	fmt.Printf("%s%-11s → %v\n", indent, typ.Field(i).Name, val.Field(i).Interface())
+	// // }
 
-	fmt.Print("\nKeys")
 	keys := meta.Keys()
 	sort.Slice(keys, func(i, j int) bool { return keys[i].String() < keys[j].String() })
-	for i, k := range keys {
-		indent := indent
-		if i == 0 {
-			indent = strings.Repeat(" ", 10)
+
+	nodes := GetNodes()
+
+	for _, k := range keys {
+		// if i == 0 {
+		// 	indent = strings.Repeat(" ", 10)
+		// }
+
+		// Retrieve node list
+		if strings.Count(k.String(), ".") == 1 {
+			if strings.HasPrefix(k.String(), "nodes.") {
+				*nodes = append(*nodes, strings.Split(k.String(), ".")[1])
+			}
 		}
-		fmt.Printf("%s%-10s %s\n", indent, meta.Type(k...), k)
+
+		// For debug: List all keys in config.toml
+		// fmt.Printf("%s%-10s %s\n", indent, meta.Type(k...), k)
 	}
 
-	fmt.Print("\nUndecoded")
-	keys = meta.Undecoded()
-	sort.Slice(keys, func(i, j int) bool { return keys[i].String() < keys[j].String() })
-	for i, k := range keys {
-		indent := indent
-		if i == 0 {
-			indent = strings.Repeat(" ", 5)
-		}
-		fmt.Printf("%s%-10s %s\n", indent, meta.Type(k...), k)
-	}
 }
