@@ -1,7 +1,12 @@
 package types
 
 type Config struct {
-	Nodes map[string]Node `toml:"nodes"`
+	General General
+	Nodes   map[string][]Node
+}
+
+type General struct {
+	Port int
 }
 
 type Node struct {
