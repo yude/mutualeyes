@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	Config "github.com/yude/kakashiz/config"
+	Types "github.com/yude/kakashiz/types"
 )
 
 func NodeAliveCheck() {
@@ -21,8 +22,14 @@ func NodeAliveCheck() {
 				} else {
 					if resp.StatusCode != 200 {
 						log.Println("Node `" + key + "` is not working properly.")
+						n.Status = Types.Ng
 					} else {
-						log.Println("Node `" + key + "` is working fine.")
+						if n.Status == Types.Ok {
+							log.Println("Node `" + key + "` is working fine.")
+						} else {
+							log.Println("Node `" + key + "` is recovered from disaster.")
+							n.Status = Types.Ok
+						}
 					}
 				}
 			}

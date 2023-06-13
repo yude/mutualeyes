@@ -13,4 +13,12 @@ type Node struct {
 	Me       bool
 	Domain   string
 	Disabled bool
+	Status   NodeStatus
 }
+
+type NodeStatus int
+
+const (
+	Ok NodeStatus = iota
+	Ng
+)
