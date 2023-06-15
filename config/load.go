@@ -40,4 +40,25 @@ func Load() {
 			}
 		}
 	}
+
+	// Determine which node is mine
+	// How many nodes are defined as mine; Used for exception
+	me_cnt := 0
+	for key, node := range config.Nodes {
+		me := GetMe()
+
+		for _, n := range node {
+			if n.Me {
+				me_cnt++
+				*me = key
+			}
+		}
+	}
+	// Check node (defined as mine) counter
+	if me_cnt == 0 {
+		log.Fatal("No node is defined as mine. Exiting.")
+	}
+	if me_cnt > 1 {
+		log.Fatal("More than 1 node is defined as mine. Exiting.")
+	}
 }
