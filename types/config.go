@@ -2,23 +2,15 @@ package types
 
 type Config struct {
 	General General
-	Nodes   map[string][]Node
+	Nodes   map[string][]NodeConfig
 }
 
 type General struct {
 	Port int
 }
 
-type Node struct {
+type NodeConfig struct {
 	Me       bool
 	Domain   string
 	Disabled bool
-	Status   NodeStatus
 }
-
-type NodeStatus int
-
-const (
-	Ok NodeStatus = iota
-	Ng
-)
