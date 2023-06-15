@@ -7,12 +7,14 @@ import (
 	"log"
 	"net/http"
 
+	Config "github.com/yude/kakashiz/config"
 	Types "github.com/yude/kakashiz/types"
 )
 
 func HelloHandler(w http.ResponseWriter, _ *http.Request) {
+	me := Config.GetMe()
 	status := Types.Status{
-		ID: "aaa",
+		ID: *me,
 	}
 
 	var buf bytes.Buffer
