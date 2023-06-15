@@ -2,6 +2,7 @@ package routine
 
 import (
 	"fmt"
+	"log"
 
 	Event "github.com/yude/kakashiz/event"
 	Status "github.com/yude/kakashiz/status"
@@ -11,12 +12,10 @@ import (
 
 func PrintNodeEvents() {
 	events := Event.GetEvents()
-	fmt.Println("Current ongoing events:\n", *events)
+	log.Println("Current ongoing events:\n", *events)
 }
 
 func PrintNodeStatuses() {
-	fmt.Println("Current node status")
-
 	s := Status.GetNodeStatuses()
-	fmt.Println(*s)
+	fmt.Println("Current node status:\n", *s)
 }
