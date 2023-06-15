@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/yude/kakashiz/types"
 )
 
 func Load() {
@@ -30,15 +29,6 @@ func Load() {
 
 	keys := meta.Keys()
 	sort.Slice(keys, func(i, j int) bool { return keys[i].String() < keys[j].String() })
-
-	// Init node status table
-	for _, node := range cfg.Nodes {
-		for _, n := range node {
-			if !n.Me {
-				n.Status = types.Ok
-			}
-		}
-	}
 
 	// Init node list
 	nodes := GetNodes()
