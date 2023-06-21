@@ -5,7 +5,12 @@ import (
 )
 
 var events []Types.NodeEvent
+var remote_events []Types.RemoteEvent
 
 func GetEvents() *[]Types.NodeEvent {
 	return &events
+}
+
+func GetRemoteEvents() *[]Types.RemoteEvent {
+	return &remote_events
 }

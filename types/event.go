@@ -8,3 +8,14 @@ type NodeEvent struct {
 	DateTime time.Time
 	Type     NodeStatusType
 }
+
+type NodeEventQuery struct {
+	Name     string
+	DateTime string
+	Type     string
+}
+
+type RemoteEvent struct {
+	Event      NodeEvent
+	SourceNode string
+}
