@@ -3,9 +3,7 @@ package routine
 import (
 	"log"
 	"net/http"
-	"time"
 
-	"github.com/oklog/ulid/v2"
 	Config "github.com/yude/kakashiz/config"
 	Event "github.com/yude/kakashiz/event"
 	Status "github.com/yude/kakashiz/status"
@@ -27,7 +25,7 @@ func NodeAliveCheck() {
 					if !Status.IsDown(key) {
 						log.Println("Node `" + key + "` is not working properly.")
 						Status.DownNode(key)
-						Event.AddDownNode(key)
+						Event.AddNodeEvent(key, Types.Down)
 					} else {
 						log.Println("Node `" + key + "` is still ongoing in the disaster.")
 					}
@@ -36,7 +34,7 @@ func NodeAliveCheck() {
 					if resp.StatusCode != 200 && !Status.IsDown(key) {
 						log.Println("Node `" + key + "` is not working properly.")
 						Status.DownNode(key)
-						Event.AddDownNode(key)
+						Event.AddNodeEvent(key, Types.Down)
 					} else {
 						if !Status.IsDown(key) {
 							log.Println("Node `" + key + "` is working fine.")
@@ -55,14 +53,7 @@ func NodeAliveCheck() {
 							}
 
 							// Add this node event to event listing
-							*events = append(*events, Types.NodeEvent{
-								// Generate unique event id based on ULID.
-								// This unique id only works in each node.
-								Id:       ulid.Make().String(),
-								Name:     key,
-								DateTime: time.Now(),
-								Type:     Types.Up,
-							})
+							Event.AddNodeEvent(key, Types.Up)
 						}
 					}
 				}
