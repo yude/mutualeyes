@@ -1,14 +1,20 @@
-[nodes.a]
+[general]
+port = 3002
+
+[platform]
+discord = ""
+
+[[nodes.a]]
+me = false
+domain = "http://localhost:3000"
+disabled = true
+
+[[nodes.b]]
+me = false
+domain = "http://localhost:3001"
+disabled = false
+
+[[nodes.c]]
 me = true
-domain = "a.example.com"
-disabled = false
-
-[nodes.b]
-me = false
-domain = "b.example.com"
-disabled = false
-
-[nodes.c]
-me = false
-domain = "c.example.com"
+domain = "http://localhost:3002"
 disabled = false
