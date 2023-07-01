@@ -10,15 +10,21 @@ import (
 
 // This function should be called on node event: Down
 // name: The name of target node
-func AddDownNode(name string) {
+func AddNodeEvent(name string, event_type Types.NodeStatusType) {
 	events := GetEvents()
-	// Add this node event to event listing
-	*events = append(*events, Types.NodeEvent{
+
+	event := Types.NodeEvent{
 		// Generate unique event id based on ULID.
 		// This unique id only works in each node.
 		Id:       ulid.Make().String(),
 		Name:     name,
 		DateTime: time.Now(),
-		Type:     Types.Down,
-	})
+		Type:     event_type,
+	}
+
+	// Add this node event to event listing
+	*events = append(*events, event)
+
+	// Send this event to other nodes
+	SendRemoteEvent(event)
 }
