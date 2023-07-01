@@ -5,11 +5,12 @@ import (
 	"time"
 
 	Event "github.com/yude/kakashiz/event"
+	Platform "github.com/yude/kakashiz/platform"
 )
 
 // Notify
 // Triggers the notification
-func Notify() {
+func SendNotify() {
 	events := Event.GetEvents()
 	remote_events := Event.GetRemoteEvents()
 
@@ -34,8 +35,8 @@ func Notify() {
 			}
 
 			// If the loop reaches here, carries out the notification process
-
 			log.Println("Info: Sending notification about this event:\n", "Target node: ", eV.Name, "\nEvent type: ", eV.Type, "\nEvent Timestamp: ", eV.DateTime)
+			Platform.SendToDiscord(eV)
 
 			// Pop this event
 			*events = append((*events)[:eK], (*events)[eK+1:]...)
