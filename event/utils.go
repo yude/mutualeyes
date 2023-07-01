@@ -41,3 +41,24 @@ func ConvQueryToNodeEvent(query Types.NodeEventQuery) (Types.NodeEvent, error) {
 
 	return *event, nil
 }
+
+func ConvNodeEventToQuery(event Types.NodeEvent) (Types.NodeEventQuery, error) {
+	query := new(Types.NodeEventQuery)
+
+	if &event.DateTime == nil || event.Id == "" || event.Name == "" || &event.Type == nil {
+		return *query, errors.New("Query is invalid.")
+	}
+
+	query.DateTime = event.DateTime.String()
+	query.Name = event.Name
+	switch event.Type {
+	case Types.Up:
+		query.Type = "up"
+	case Types.Down:
+		query.Type = "down"
+	default:
+		query.Type = "invalid"
+	}
+
+	return *query, nil
+}

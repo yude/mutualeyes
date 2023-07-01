@@ -11,6 +11,7 @@ import (
 func Start() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", HelloHandler)
+	mux.HandleFunc("/receive_event", ReceiveRemoteEventHandler)
 
 	cfg := Config.GetConfig()
 	port := strconv.Itoa(cfg.General.Port)
