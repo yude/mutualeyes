@@ -4,7 +4,7 @@ import (
 	"log"
 
 	Config "github.com/yude/kakashiz/config"
-	Handlers "github.com/yude/kakashiz/handlers"
+	Handler "github.com/yude/kakashiz/handler"
 	Routine "github.com/yude/kakashiz/routine"
 	Status "github.com/yude/kakashiz/status"
 )
@@ -15,5 +15,5 @@ func main() {
 	log.Printf("Current nodes: %s\n", *Config.GetNodes())
 
 	Routine.Start()
-	Handlers.Start()
+	Handler.Start()
 }
