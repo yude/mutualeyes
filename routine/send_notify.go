@@ -1,7 +1,6 @@
 package routine
 
 import (
-	"errors"
 	"log"
 	"sort"
 	"time"
@@ -35,7 +34,7 @@ func SendNotify() {
 		return alive_nodes[i] < alive_nodes[j]
 	})
 	if len(alive_nodes) <= 0 {
-		errors.New("No node available to use for notification")
+		log.Println("No node available to use for notification")
 	}
 
 	// eK: key of local event array
