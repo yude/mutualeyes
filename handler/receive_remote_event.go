@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	Event "github.com/yude/kakashiz/event"
@@ -17,13 +18,15 @@ import (
 //     the records of these events will be marked as done, and this node
 //     forget about it.
 func ReceiveRemoteEventHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Received remote event, parsing...")
 	remote_events := Event.GetRemoteEvents()
 
 	// Ignore GET requests
-	if r.Method == http.MethodPost {
+	if r.Method == http.MethodGet {
 		e := Types.HandleError{
 			Error: Types.InvalidMethod,
 		}
+		log.Println("Received remote event, but its method is GET. Ignoring.")
 		fmt.Fprintln(w, e)
 		return
 	}
@@ -39,6 +42,7 @@ func ReceiveRemoteEventHandler(w http.ResponseWriter, r *http.Request) {
 		e := Types.HandleError{
 			Error: Types.InvalidQuery,
 		}
+		log.Println("Failed to parse remote event - [Query]", query, "[Error]", err)
 		fmt.Fprintln(w, e)
 		return
 	}
@@ -47,6 +51,7 @@ func ReceiveRemoteEventHandler(w http.ResponseWriter, r *http.Request) {
 		Event:      event,
 		SourceNode: r.FormValue("source"),
 	}
+	log.Println("Received remote event - Event:", remote_event)
 
 	*remote_events = append(*remote_events, remote_event)
 }
