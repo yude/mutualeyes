@@ -29,13 +29,13 @@ func ConvQueryToNodeEvent(query Types.NodeEventQuery) (Types.NodeEvent, error) {
 		}
 	}
 	if event.Type == Types.Invalid {
-		return *event, errors.New("InvalidQuery")
+		return *event, errors.New("invalid event type")
 	}
 
 	// Parse DateTime
-	dt, err := time.Parse("", query.DateTime)
+	dt, err := time.Parse("2006-01-02 15:04:05.000000000 -0700 MST", query.DateTime)
 	if err != nil {
-		return *event, errors.New("InvalidQuery")
+		return *event, errors.New("invalid timestamp")
 	}
 	event.DateTime = dt
 
@@ -46,10 +46,10 @@ func ConvNodeEventToQuery(event Types.NodeEvent) (Types.NodeEventQuery, error) {
 	query := new(Types.NodeEventQuery)
 
 	if &event.DateTime == nil || event.Id == "" || event.Name == "" || &event.Type == nil {
-		return *query, errors.New("Query is invalid.")
+		return *query, errors.New("some field of this query is empty")
 	}
 
-	query.DateTime = event.DateTime.String()
+	query.DateTime = event.DateTime.Format("2006-01-02 15:04:05.000000000 -0700 MST")
 	query.Name = event.Name
 	switch event.Type {
 	case Types.Up:
