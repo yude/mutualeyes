@@ -27,10 +27,10 @@ func SendToDiscord(event Types.NodeEvent) error {
 
 	switch event.Type {
 	case Types.Up:
-		embed_color = 0xF85A5A
+		embed_color = 0x24FD4D
 		event_type = "Up"
 	case Types.Down:
-		embed_color = 0x24FD4D
+		embed_color = 0xF85A5A
 		event_type = "Down"
 	default:
 		embed_color = 0xD2D2D2
