@@ -1,6 +1,7 @@
 package event
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -32,12 +33,15 @@ func SendRemoteEvent(node_event Types.NodeEvent) {
 
 	for key, node := range cfg.Nodes {
 		for _, n := range node {
-			res, err := http.PostForm(n.Domain+"/receive_event", ps)
+			log.Println("Posting the event to node " + key + " (" + n.Domain + ")")
+			res, err := http.PostForm(fmt.Sprintf("%s/receive_event", n.Domain), ps)
 			if err != nil {
-				log.Println("Error: Failed to post the event (event id: " + node_event.Id + ") to " + key)
+				log.Println("Error: Failed to post the event (event id: " + node_event.Id + ") to " + key + " - Node " + key + " is possibly down.")
 			}
 
-			defer res.Body.Close()
+			if err == nil {
+				defer res.Body.Close()
+			}
 		}
 	}
 }
