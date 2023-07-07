@@ -7,7 +7,7 @@ func Start() {
 
 	// The routines for production use.
 	c.AddFunc("@every 5s", func() { NodeAliveCheck() })
-	c.AddFunc("@every 5s", func() { SendNotify() })
+	c.AddFunc("@every 20s", func() { SendNotify() })
 
 	// The routines for debugging.
 	c.AddFunc("@every 5s", func() { PrintNodeEvents() })
