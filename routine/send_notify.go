@@ -40,12 +40,14 @@ func SendNotify() {
 	// eK: key of local event array
 	// eV: value of local event array
 	for eK, eV := range *events {
-		// If the specific local event exceeds 20s lag,
+		// If the specific local event exceeds 3m from disaster,
 		// forcibly execute notification
-		log.Println("Info: Sending notification about this event:\n", "Target node: ", eV.Name, "\nEvent type: ", eV.Type, "\nEvent Timestamp: ", eV.DateTime)
-		err := Platform.SendToDiscord(eV)
-		if err != nil {
-			log.Println("Error: [Discord] ", err)
+		if eV.DateTime.Sub(time.Now()) <= time.Minute*3 {
+			log.Println("Info: Sending notification about this event:\n", "Target node: ", eV.Name, "\nEvent type: ", eV.Type, "\nEvent Timestamp: ", eV.DateTime)
+			err := Platform.SendToDiscord(eV)
+			if err != nil {
+				log.Println("Error: [Discord] ", err)
+			}
 		}
 
 		// Pop this event
