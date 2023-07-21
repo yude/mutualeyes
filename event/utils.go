@@ -45,10 +45,6 @@ func ConvQueryToNodeEvent(query Types.NodeEventQuery) (Types.NodeEvent, error) {
 func ConvNodeEventToQuery(event Types.NodeEvent) (Types.NodeEventQuery, error) {
 	query := new(Types.NodeEventQuery)
 
-	if &event.DateTime == nil || event.Id == "" || event.Name == "" || &event.Type == nil {
-		return *query, errors.New("some field of this query is empty")
-	}
-
 	query.DateTime = event.DateTime.Format("2006-01-02 15:04:05.000000000 -0700 MST")
 	query.Name = event.Name
 	switch event.Type {

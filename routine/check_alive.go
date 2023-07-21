@@ -44,11 +44,9 @@ func NodeAliveCheck() {
 							Status.UpNode(key)
 
 							// Remove events that implies this node is down
-							for i, v := range *events {
+							for k, v := range *events {
 								if v.Name == key && v.Type == Types.Down {
-									e := *events
-									e = append(e[:i], e[i+1:]...)
-									*events = e
+									delete(*events, k)
 								}
 							}
 

@@ -16,15 +16,15 @@ func AddNodeEvent(name string, event_type Types.NodeStatusType) {
 	event := Types.NodeEvent{
 		// Generate unique event id based on ULID.
 		// This unique id only works in each node.
-		Id:       ulid.Make().String(),
 		Name:     name,
 		DateTime: time.Now(),
 		Type:     event_type,
 	}
 
 	// Add this node event to event listing
-	*events = append(*events, event)
+	ulid := ulid.Make().String()
+	(*events)[ulid] = event
 
 	// Send this event to other nodes
-	SendRemoteEvent(event)
+	SendRemoteEvent(ulid, event)
 }

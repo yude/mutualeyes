@@ -51,7 +51,7 @@ func SendNotify() {
 		}
 
 		// Pop this event
-		*events = append((*events)[:eK], (*events)[eK+1:]...)
+		delete(*events, eK)
 
 		// reK: key of remote event array
 		// reV: value of remote event array
@@ -88,8 +88,8 @@ func SendNotify() {
 			}
 
 			// Pop this event
-			*events = append((*events)[:eK], (*events)[eK+1:]...)
-			*remote_events = append((*remote_events)[:reK], (*remote_events)[reK+1:]...)
+			delete(*events, eK)
+			delete(*remote_events, reK)
 		}
 	}
 }

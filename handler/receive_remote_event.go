@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/oklog/ulid/v2"
 	Event "github.com/yude/kakashiz/event"
 	Types "github.com/yude/kakashiz/types"
 )
@@ -53,5 +54,6 @@ func ReceiveRemoteEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("Received remote event - Event:", remote_event)
 
-	*remote_events = append(*remote_events, remote_event)
+	ulid := ulid.Make().String()
+	(*remote_events)[ulid] = remote_event
 }
