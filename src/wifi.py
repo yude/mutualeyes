@@ -5,11 +5,12 @@ import constrants
 
 async def prepare_wifi():
     """
-    The preparation of Wi-Fi connection.
-    Reference: https://datasheets.raspberrypi.com/picow/connecting-to-the-internet-with-pico-w.pdf
+    Wi-Fi 接続を準備します。
+    リファレンス: https://datasheets.raspberrypi.com/picow/connecting-to-the-internet-with-pico-w.pdf
     """
 
-    # Set country code
+    # 国別コードを指定します。
+    # これは、国によって、Wi-Fi に使用できる周波数帯が異なるからです。
     rp2.country(constrants.WIFI_COUNTRY_CODE)
 
     wlan = network.WLAN(network.STA_IF)
