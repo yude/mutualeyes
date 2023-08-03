@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 import datetime
 import json
 
@@ -52,11 +53,11 @@ async def event_to_query(event: Event) -> str:
 
     return json.dumps(
         event.__dict__,
-        default=serialize_default # type: ignore
+        default=serialize_default  # type: ignore
     )
 
 
-async def query_to_event(json_str: str) -> Event | None:  # noqa: E1131
+async def query_to_event(json_str: str) -> Union[Event, None]:
     """
     POST リクエスト等で受け取った JSON をパースして、
     コード内で使用されているイベント オブジェクトに変換します。
@@ -66,20 +67,20 @@ async def query_to_event(json_str: str) -> Event | None:  # noqa: E1131
 
     try:
         parsed_query = json.loads(json_str)
-    except:
+    except:  # noqa: E722
         return None
     
     try:
         created_on = datetime.datetime.strptime(
-            q.created_on,
+            parsed_query.created_on,
             "%Y-%m-%d %H:%M:%S"
         )
     except:  # noqa: E722
         return None
     
-    if q.type == "up":
+    if parsed_query.type == "up":
         event_type = EventType.UP
-    elif q.type == "down":
+    elif parsed_query.type == "down":
         event_type = EventType.DOWN
     else:
         event_type = EventType.UNKNOWN
@@ -95,7 +96,7 @@ async def query_to_event(json_str: str) -> Event | None:  # noqa: E1131
     return event
 
 
-async def identify_event(event: Event) -> Event | None:  # noqa: E1131
+async def identify_event(event: Event) -> Union[Event, None]:
     """
     入力のイベントに関して、既にこのノード内に同じものとしてみなせる
     イベントがある場合、それを返します。存在しない場合、None を返します。
