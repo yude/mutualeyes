@@ -1,0 +1,14 @@
+{
+    "name": "src",
+    "stubs": {
+        "micropython-rp2-pico-w-stubs": "1.20.0.post2"
+    },
+    "dev-packages": {
+        "micropy-cli": "*"
+    },
+    "packages": {},
+    "config": {
+        "vscode": true,
+        "pylint": true
+    }
+}

@@ -1,0 +1,2 @@
+# Wi-Fi
+WIFI_COUNTRY_CODE = 'JP'
