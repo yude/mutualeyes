@@ -2,6 +2,8 @@ from enum import Enum
 from typing import Union
 import datetime
 import json
+import uasyncio
+from typing import Union
 
 class EventType(Enum):
     UP = 1
@@ -17,17 +19,19 @@ class EventStatus(Enum):
 class Event:
     def __init__(
         self,
-        source: str,
-        created_on: datetime.datetime,
-        type: int,
-        status: int,
-        worker_node: list
+        origin: str, # イベントの発生元
+        created_on: datetime.datetime, # イベントの発生日時
+        type: int, # イベントの種類, event.EventType を使用する
+        status: int, # イベントの状態, event.EventStatus を使用する
+        worker_node: list, # イベントを認識しているノード
+        source: Union[str, None]=None # イベントの取得元、POST リクエストの処理時に使用する
     ):
-        self.source = source
+        self.origin = origin
         self.created_on = created_on
         self.type = type
         self.status = status
         self.worker_node = worker_node
+        self.source = source
 
 
 events: list[Event] = []
@@ -86,7 +90,7 @@ async def query_to_event(json_str: str) -> Union[Event, None]:
         event_type = EventType.UNKNOWN
 
     event = Event(
-        source=parsed_query.source,
+        origin=parsed_query.origin,
         created_on=created_on,
         type=event_type,
         status=EventStatus.WAIT_CONFIRM,
@@ -96,11 +100,23 @@ async def query_to_event(json_str: str) -> Union[Event, None]:
     return event
 
 
-async def identify_event(event: Event) -> Union[Event, None]:
+async def identify_event(target: Event) -> Union[Event, None]:
     """
     入力のイベントに関して、既にこのノード内に同じものとしてみなせる
     イベントがある場合、それを返します。存在しない場合、None を返します。
     """
 
+    for e in events:
+        # イベントの発生元 (ターゲット) とイベントの種類が等しい
+        if (
+            e.origin == target.origin and
+            e.type == target.type
+        ):
+            # イベントの発生日時の差が 5 分以内
+            if (
+                abs(e.created_on - target.created_on) <
+                datetime.timedelta(minutes=5)
+            ):
+                return e
 
     return None
