@@ -2,8 +2,6 @@ from enum import Enum
 from typing import Union
 import datetime
 import json
-import uasyncio
-from typing import Union
 
 class EventType(Enum):
     UP = 1
@@ -19,12 +17,12 @@ class EventStatus(Enum):
 class Event:
     def __init__(
         self,
-        origin: str, # イベントの発生元
-        created_on: datetime.datetime, # イベントの発生日時
-        type: int, # イベントの種類, event.EventType を使用する
-        status: int, # イベントの状態, event.EventStatus を使用する
-        worker_node: list, # イベントを認識しているノード
-        source: Union[str, None]=None # イベントの取得元、POST リクエストの処理時に使用する
+        origin: str,  # イベントの発生元
+        created_on: datetime.datetime,  # イベントの発生日時
+        type: int,  # イベントの種類, event.EventType を使用する
+        status: int,  # イベントの状態, event.EventStatus を使用する
+        worker_node: list,  # イベントを認識しているノード
+        source: Union[str, None] = None  # イベントの取得元、POST リクエストの処理時に使用する
     ):
         self.origin = origin
         self.created_on = created_on
