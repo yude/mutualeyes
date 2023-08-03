@@ -1,4 +1,5 @@
 from microdot_asyncio import Microdot
+import constrants
 
 async def run_httpd(wlan):
     """
@@ -24,3 +25,10 @@ async def run_httpd(wlan):
         return """
         Not implemented
         """
+
+    app.run(
+        host='0.0.0.0',
+        port=constrants.HTTP_PORT,
+        debug=True,
+        ssl=None,
+    )

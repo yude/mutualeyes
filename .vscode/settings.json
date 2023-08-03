@@ -1,16 +1,23 @@
 {
-    // Loaded Stubs:  micropython-rp2-pico-w-stubs 
+    // Loaded Stubs:  micropython-rp2-pico-w-stubs  micropython-stdlib-stubs 
     
     "python.languageServer": "Pylance",
     "python.analysis.autoSearchPath": true,
-    "python.autoComplete.extraPaths": [".micropy/micropython_rp2_pico_w_stubs-1.20.0.post2", ".micropy/src"],
+    "python.autoComplete.extraPaths": [".micropy/micropython_rp2_pico_w_stubs-1.20.0.post2", ".micropy/micropython-stdlib-stubs-0.9.0/stdlib", ".micropy/BradenM-micropy-stubs-4f5a52a/frozen", ".micropy/src", "/home/yude/.local/share/virtualenvs/kakashiz-6etCx5Y4/lib/python3.11/site-packages"],
     "python.analysis.diagnosticSeverityOverrides": { "reportMissingModuleSource": "none" },
     "python.analysis.typeCheckingMode": "basic",
-    "python.autoComplete.typeshedPaths":  [".micropy/micropython_rp2_pico_w_stubs-1.20.0.post2", ".micropy/src", "typings"],
-    "python.analysis.typeshedPaths":  [".micropy/micropython_rp2_pico_w_stubs-1.20.0.post2", ".micropy/src", "typings"],
+    "python.autoComplete.typeshedPaths":  [".micropy/micropython_rp2_pico_w_stubs-1.20.0.post2", ".micropy/micropython-stdlib-stubs-0.9.0/stdlib", ".micropy/BradenM-micropy-stubs-4f5a52a/frozen", ".micropy/src", "typings"],
+    "python.analysis.typeshedPaths":  [".micropy/micropython_rp2_pico_w_stubs-1.20.0.post2", ".micropy/micropython-stdlib-stubs-0.9.0/stdlib", ".micropy/BradenM-micropy-stubs-4f5a52a/frozen", ".micropy/src", "typings"],
     
     
 
     "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": true,
+    "python.analysis.extraPaths": [
+        ".micropy/micropython_rp2_pico_w_stubs-1.20.0.post2",
+        ".micropy/micropython-stdlib-stubs-0.9.0/stdlib",
+        ".micropy/BradenM-micropy-stubs-4f5a52a/frozen",
+        ".micropy/src",
+        "/home/yude/.local/share/virtualenvs/kakashiz-6etCx5Y4/lib/python3.11/site-packages"
+    ]
 }
