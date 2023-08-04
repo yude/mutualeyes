@@ -32,7 +32,7 @@ class Event:
         self.source = source
 
 
-events: list[Event] = []
+events: dict[str, Event] = {}
 
 async def event_to_query(event: Event) -> str:
     """
@@ -107,14 +107,14 @@ async def identify_event(target: Event) -> Union[Event, None]:
     for e in events:
         # イベントの発生元 (ターゲット) とイベントの種類が等しい
         if (
-            e.origin == target.origin and
-            e.type == target.type
+            events[e].origin == target.origin and
+            events[e].type == target.type
         ):
             # イベントの発生日時の差が 5 分以内
             if (
-                abs(e.created_on - target.created_on) <
+                abs(events[e].created_on - target.created_on) <
                 datetime.timedelta(minutes=5)
             ):
-                return e
+                return events[e]
 
     return None
