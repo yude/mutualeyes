@@ -6,3 +6,6 @@ class Node:
     ):
         self.name = name,
         self.endpoint = endpoint
+
+async def check_node():
+    return
