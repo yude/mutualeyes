@@ -23,6 +23,8 @@ async def run_httpd():
     global wlan
     wlan = await wifi.prepare_wifi()
 
+    await httpd.run_httpd(wlan)
+
 if __name__ == '__main__':
     _thread.start_new_thread(routine)
     uasyncio.run(run_httpd())
