@@ -1,6 +1,6 @@
 # kakashiz
 
-kakashiz is a decentralized monitoring system.  
+kakashiz is easy-to-ported decentralized monitoring system mainly developed for microcomputers.\
 This branch is for RP2040 chip (Raspberry Pi Pico W).
 
 ## Development
