@@ -12,6 +12,7 @@ async def routine():
     while True:
         if wlan != 0:
             break
+        uasyncio.sleep(1)
 
     schedule.every(5).seconds.do(node.check_node)
     while True:
