@@ -7,8 +7,6 @@ name = "pypi"
 micropy-cli = "*"
 microdot-asyncio = "*"
 schedule = "*"
-rp2 = "*"
-network = "*"
 
 [dev-packages]
 
