@@ -2,6 +2,8 @@ from enum import Enum
 from typing import Union
 import datetime
 import json
+import copy
+import config
 
 class EventType(Enum):
     UP = 1
@@ -40,6 +42,9 @@ async def event_to_query(event: Event) -> str:
     POST リクエスト等で使用できる JSON に変換します。
     """
 
+    e = copy.copy(event)
+    e.source = config.ME
+
     def serialize_default(obj):
         if isinstance(obj, datetime.datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -54,7 +59,7 @@ async def event_to_query(event: Event) -> str:
         raise TypeError("Type %s is not serializable" % type(obj))
 
     return json.dumps(
-        event.__dict__,
+        e.__dict__,
         default=serialize_default  # type: ignore
     )
 
