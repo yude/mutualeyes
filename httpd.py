@@ -1,5 +1,5 @@
 from microdot_asyncio import Microdot
-import constrants
+import config
 
 async def run_httpd(wlan):
     """
@@ -28,7 +28,7 @@ async def run_httpd(wlan):
 
     app.run(
         host='0.0.0.0',
-        port=constrants.HTTP_PORT,
+        port=config.HTTP_PORT,
         debug=True,
         ssl=None,
     )

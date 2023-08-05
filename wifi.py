@@ -1,7 +1,7 @@
 import rp2
 import uasyncio
 import network
-import constrants
+import config
 
 async def prepare_wifi():
     """
@@ -11,12 +11,12 @@ async def prepare_wifi():
 
     # 国別コードを指定します。
     # これは、国によって、Wi-Fi に使用できる周波数帯が異なるからです。
-    rp2.country(constrants.WIFI_COUNTRY_CODE)
+    rp2.country(config.WIFI_COUNTRY_CODE)
 
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
 
-    wlan.connect(constrants.WIFI_SSID, constrants.WIFI_PASSWORD)
+    wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
 
     for i in range(10):
         status = wlan.status()
