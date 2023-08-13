@@ -1,4 +1,9 @@
 from microdot_asyncio import Microdot
+import json
+import utils
+import uuid
+
+import event
 import config
 
 async def run_httpd(wlan):
@@ -20,12 +25,27 @@ async def run_httpd(wlan):
             local_ip_addr=wlan.ifconfig()[0]
         )
 
-    @app.post('/event/add')
-    async def _event_add(req):
-        return """
-        Not implemented
-        """
-
+    @app.post('/event')
+    async def _event_post(req):
+        req_body = utils.auto_decode(req.body)
+        try:
+            req_json = json.loads(req_body)
+        except ValueError:
+            return """
+            {"result": "INVALID_JSON_FORMAT"}
+            """
+        
+        query = await event.query_to_event(req_json)
+        if query is not None:
+            event.events[str(uuid.uuid1())] = query
+            return """
+            {"result": "SUCCESS"}
+            """
+        else:
+            return """
+            {"result": "FAIL_TO_RECORD_EVENT"}
+            """
+    
     app.run(
         host='0.0.0.0',
         port=config.HTTP_PORT,
