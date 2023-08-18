@@ -36,7 +36,7 @@ async def run_httpd(wlan):
             """
         
         query = await event.query_to_event(req_json)
-        if query is not None:
+        if query is not None:  # クエリの解釈に成功した場合
             identified = await event.identify_event(query)
             if identified is None:
                 event.events[str(uuid.uuid1())] = query
