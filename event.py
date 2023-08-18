@@ -42,9 +42,14 @@ async def event_to_query(event: Event) -> str:
     POST リクエスト等で使用できる JSON に変換します。
     """
 
+    # このノードを、入力されたイベントが通過したということを記録します。
     e = copy.copy(event)
     e.source = config.ME
+    e.worker_node.push(config.ME)
+    worker_node_dict = set(copy.copy(e.worker_node))
+    e.worker_node = list(worker_node_dict)
 
+    # 適当なフォーマットに整形します。
     def serialize_default(obj):
         if isinstance(obj, datetime.datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -97,7 +102,7 @@ async def query_to_event(json_str: str) -> Union[Event, None]:
         created_on=created_on,
         type=event_type,
         status=EventStatus.WAIT_CONFIRM,
-        worker_node=[]
+        worker_node=[config.ME]
     )
 
     return event
