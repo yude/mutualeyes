@@ -34,5 +34,5 @@ async def prepare_wifi():
             'Failed to establish Wi-Fi connection. (Status: {})'.format(wlan_status))
 
     print('Wi-Fi connection is ready! ifconfig:', wlan.ifconfig())
-    
+
     return wlan
