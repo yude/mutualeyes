@@ -16,7 +16,12 @@ class Node:
         self.name = name,
         self.endpoint = endpoint
 
-async def check_node(node: Node):
+
+"""
+check_node(node: Node)
+入力されたノードに対して、稼働状況を確認する等の処理を行います。
+"""
+async def check_node(node: Node) -> str:
     res = urequests.get(node.endpoint)
 
     if res.status_code != 200:
@@ -27,28 +32,30 @@ async def check_node(node: Node):
             type=event.EventType.DOWN,
             status=event.EventStatus.WAIT_CONFIRM,
             source=config.ME,
-            worker_node=[config.ME]
+            worker_node=[config.ME],
+            confirmed_on=None
         )
 
         # 重複していれば、そこで処理を終わる
         identified = event.identify_event(new_event)
         if identified is not None:
-            return node.name
+            return str(node.name)
 
         # 重複していなければ、登録する
         event.events[str(uuid.uuid1())] = new_event
 
-    return node.name
+    return str(node.name)
 
 # Lock for check_node_parallel()
-check_lock = False
+check_node_lock = False
 
 async def check_node_parallel():
-    global check_lock
-    if check_lock:
+    global check_node_lock
+    if check_node_lock:
         return
 
-    check_lock = True
+    check_node_lock = True
+
     for f in uasyncio.as_completed([
         check_node(node)
         for node in config.NODES
@@ -60,6 +67,6 @@ async def check_node_parallel():
             format(finished_node)
         )
 
-    check_lock = False
+    check_node_lock = False
 
     return

@@ -3,7 +3,11 @@ from typing import Union
 import datetime
 import json
 import copy
+import uasyncio
+
+import constrants
 import config
+import notify
 
 class EventType(Enum):
     UP = 1
@@ -14,7 +18,9 @@ class EventStatus(Enum):
     # このイベントに対して、通知を発行するまでの待機状態
     WAIT_CONFIRM = 1
     # このイベントに対して、通知を発行したことを確認した状態
-    EVENT_DONE = 2
+    DONE = 2
+    # このイベントが、通知の配送を待機している状態
+    WAIT_DELIVERY = 3
 
 class Event:
     def __init__(
@@ -24,6 +30,7 @@ class Event:
         type: int,  # イベントの種類, event.EventType を使用する
         status: int,  # イベントの状態, event.EventStatus を使用する
         worker_node: list,  # イベントを認識しているノード
+        confirmed_on: datetime.datetime | None,  # イベントの通知を配信すべき時刻
         source: Union[str, None] = None  # イベントの取得元、POST リクエストの処理時に使用する
     ):
         self.origin = origin
@@ -32,6 +39,7 @@ class Event:
         self.status = status
         self.worker_node = worker_node
         self.source = source
+        self.confirmed_on = confirmed_on
 
 
 events: dict[str, Event] = {}
@@ -102,7 +110,8 @@ async def query_to_event(json_str: str) -> Union[Event, None]:
         created_on=created_on,
         type=event_type,
         status=EventStatus.WAIT_CONFIRM,
-        worker_node=[config.ME]
+        worker_node=[config.ME],
+        confirmed_on=None
     )
 
     return event
@@ -120,11 +129,62 @@ async def identify_event(target: Event) -> Union[Event, None]:
             events[e].origin == target.origin and
             events[e].type == target.type
         ):
-            # イベントの発生日時の差が 5 分以内
+            # イベントの発生日時の差が一定の値に収まっているかを確認する
             if (
                 abs(events[e].created_on - target.created_on) <
-                datetime.timedelta(minutes=5)
+                datetime.timedelta(minutes=constrants.SAME_EVENT_TIME_LAG)
             ):
                 return events[e]
 
     return None
+
+# Lock for check_event_parallel()
+check_event_lock = False
+
+async def check_event(event_id: str) -> str:
+    """
+    入力されたイベントに対して、次のような処理を行います。
+    - 指定時間経過していたら合意処理を行う
+    - EventStatus の更新を行う
+    - ...
+    """
+    e = events[event_id]
+
+    if e.status == EventStatus.DONE:  # 既に通知を配信済み
+        return event_id
+
+    if e.status == EventStatus.WAIT_CONFIRM:  # 通知の配信の決定待ち
+        diff = abs(e.created_on - datetime.datetime.now())
+        if diff.seconds < 60 * constrants.EVENT_ACKNOWLEDGE_TIMEOUT:  # イベント作成から一定時間内
+            # 何もしない
+            return event_id
+
+        e.status = EventStatus.WAIT_DELIVERY
+
+    if e.status == EventStatus.WAIT_DELIVERY:  # 通知の配信待ち
+        delivery_actor = notify.get_notify_workers(e)
+        if delivery_actor == config.ME:
+            succeeded = notify.delivery(e)
+            if succeeded:
+                e.status = EventStatus.DONE
+
+    return event_id
+
+async def check_event_parallel():
+    global check_event_lock
+    if check_event_lock:
+        return
+
+    check_event_lock = True
+
+    for e in uasyncio.as_completed([
+        check_event(event_id)
+        for event_id in events
+    ]):
+        finished_event = await e
+
+        print(
+            "Scheduled tasks for event {} is finished.".format(
+                finished_event
+            )
+        )
