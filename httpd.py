@@ -28,6 +28,10 @@ async def run_httpd(wlan):
     @app.post('/event')
     async def _event_post(req):
         req_body = utils.auto_decode(req.body)
+        if req_body is None:
+            return """
+            {"result": "INVALID_JSON_FORMAT"}
+            """
         try:
             req_json = json.loads(req_body)
         except ValueError:

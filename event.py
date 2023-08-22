@@ -27,8 +27,8 @@ class Event:
         self,
         origin: str,  # イベントの発生元
         created_on: datetime.datetime,  # イベントの発生日時
-        type: int,  # イベントの種類, event.EventType を使用する
-        status: int,  # イベントの状態, event.EventStatus を使用する
+        type: EventType,  # イベントの種類, event.EventType を使用する
+        status: EventStatus,  # イベントの状態, event.EventStatus を使用する
         worker_node: list,  # イベントを認識しているノード
         confirmed_on: datetime.datetime | None,  # イベントの通知を配信すべき時刻
         source: Union[str, None] = None  # イベントの取得元、POST リクエストの処理時に使用する
