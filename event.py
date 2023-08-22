@@ -53,7 +53,7 @@ async def event_to_query(event: Event) -> str:
     # このノードを、入力されたイベントが通過したということを記録します。
     e = copy.copy(event)
     e.source = config.ME
-    e.worker_node.push(config.ME)
+    e.worker_node.append(config.ME)
     worker_node_dict = set(copy.copy(e.worker_node))
     e.worker_node = list(worker_node_dict)
 
