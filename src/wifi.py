@@ -14,6 +14,13 @@ async def prepare_wifi():
     network.country(config.WIFI_COUNTRY_CODE)
 
     wlan = network.WLAN(network.STA_IF)
+    if config.WIFI_USE_DHCP is False:
+        wlan.ifconfig(
+            config.WIFI_STATIC_IP,
+            config.WIFI_SUBNET_MASK,
+            config.WIFI_DNS_1,
+            config.WIFI_DNS_2,
+        )
     wlan.active(True)
 
     wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)

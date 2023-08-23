@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "60ce2f1f7bac72eabc45eaa76b2c4a4064ff1171ffe9c5d154b635cdcd843886"
+            "sha256": "de125ff20bb6534104800dd32967e84a025af747b523dcb0d288be3fa52aee1a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -878,6 +878,7 @@
                 "sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb",
                 "sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0"
             ],
+            "index": "pypi",
             "version": "==3.5"
         },
         "pysondb-v2": {

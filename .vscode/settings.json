@@ -10,11 +10,17 @@
     "python.analysis.typeCheckingMode": "basic",
     "python.analysis.typeshedPaths": [
         "{$workspaceFolder}/.venv/lib/python3.11/site-packages",
-        "/home/yude/ghq/github.com/yude/kakashiz/.venv/lib/python3.11/site-packages"
+        "/home/yude/ghq/github.com/yude/kakashiz/.venv/lib/python3.11/site-packages",
+        ".vscode/Pico-W-Stub"
     ],
     "python.venvPath": "{$workspaceFolder}/.venv",
     "python.analysis.extraPaths": [
         "{$workspaceFolder}/.venv/lib/python3.11/site-packages",
-        "/home/yude/ghq/github.com/yude/kakashiz/.venv/lib/python3.11/site-packages"
-    ]
+        "/home/yude/ghq/github.com/yude/kakashiz/.venv/lib/python3.11/site-packages",
+        ".vscode/Pico-W-Stub/stubs"
+    ],
+    "python.linting.enabled": true,
+    "micropico.syncFolder": "",
+    "micropico.openOnStart": false,
+    "micropico.manualComDevice": "/dev/ttyACM0"
 }

@@ -9,6 +9,7 @@ microdot-asyncio = "*"
 schedule = "*"
 urequests = "*"
 micropython-rp2-pico-w-stubs = "*"
+pyserial = "*"
 
 [dev-packages]
 
