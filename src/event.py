@@ -1,26 +1,30 @@
-from enum import Enum
-from typing import Union
-import datetime
+# from enum import Enum
+# import datetime
 import json
-import copy
+# import copy
 import uasyncio
 
+import utils
 import constrants
 import config
 import notify
 
-class EventType(Enum):
-    UP = 1
-    DOWN = 2
-    UNKNOWN = 3
+EventType = utils.enum(
+    UP=1,
+    DOWN=2,
+    UNKNOWN=3
+)
 
-class EventStatus(Enum):
+EventStatus = utils.enum(
     # このイベントに対して、通知を発行するまでの待機状態
-    WAIT_CONFIRM = 1
+    WAIT_CONFIRM=1,
+
     # このイベントに対して、通知を発行したことを確認した状態
-    DONE = 2
+    DONE=2,
+    
     # このイベントが、通知の配送を待機している状態
-    WAIT_DELIVERY = 3
+    WAIT_DELIVERY=3
+)
 
 class Event:
     def __init__(
@@ -31,7 +35,7 @@ class Event:
         status: EventStatus,  # イベントの状態, event.EventStatus を使用する
         worker_node: list,  # イベントを認識しているノード
         confirmed_on: datetime.datetime | None,  # イベントの通知を配信すべき時刻
-        source: Union[str, None] = None  # イベントの取得元、POST リクエストの処理時に使用する
+        source: str | None = None  # イベントの取得元、POST リクエストの処理時に使用する
     ):
         self.origin = origin
         self.created_on = created_on
@@ -77,7 +81,7 @@ async def event_to_query(event: Event) -> str:
     )
 
 
-async def query_to_event(json_str: str) -> Union[Event, None]:
+async def query_to_event(json_str: str) -> Event | None:
     """
     POST リクエスト等で受け取った JSON をパースして、
     コード内で使用されているイベント オブジェクトに変換します。
@@ -117,7 +121,7 @@ async def query_to_event(json_str: str) -> Union[Event, None]:
     return event
 
 
-async def identify_event(target: Event) -> Union[Event, None]:
+async def identify_event(target: Event) -> Event | None:
     """
     入力のイベントに関して、既にこのノード内に同じものとしてみなせる
     イベントがある場合、それを返します。存在しない場合、None を返します。

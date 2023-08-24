@@ -4,3 +4,6 @@ def auto_decode(query: bytes, encoding=['utf8', 'cp1252']):
             return query.decode(i)
         except UnicodeDecodeError:
             pass
+
+def enum(**enums: int):
+    return type('Enum', (), enums)

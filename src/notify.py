@@ -1,7 +1,7 @@
 import event
 import constrants
 
-import datetime
+# import datetime
 
 def get_notify_workers(e: event.Event) -> str | None:
     """

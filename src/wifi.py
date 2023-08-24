@@ -3,7 +3,7 @@ import uasyncio
 import network
 import config
 
-async def prepare_wifi():
+def prepare_wifi():
     """
     Wi-Fi 接続を準備します。
     リファレンス: https://datasheets.raspberrypi.com/picow/connecting-to-the-internet-with-pico-w.pdf
@@ -15,12 +15,12 @@ async def prepare_wifi():
 
     wlan = network.WLAN(network.STA_IF)
     if config.WIFI_USE_DHCP is False:
-        wlan.ifconfig(
+        wlan.ifconfig((
             config.WIFI_STATIC_IP,
             config.WIFI_SUBNET_MASK,
-            config.WIFI_DNS_1,
-            config.WIFI_DNS_2,
-        )
+            config.WIFI_DEFAULT_GATEWAY,
+            config.WIFI_DNS,
+        ))
     wlan.active(True)
 
     wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
