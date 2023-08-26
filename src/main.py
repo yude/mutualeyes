@@ -21,44 +21,44 @@ if __name__ == '__main__':
     # global wlan
     wlan = wifi.prepare_wifi()
     # 時刻を設定
-    clock.set_clock()
+    # clock.set_clock()
+
+    rtc = machine.RTC()
 
     ## 起動メッセージ
-    print("""\n
-            __         __              __    _    \n
-           / /______ _/ /______ ______/ /_  (_)___\n
-          / //_/ __ `/ //_/ __ `/ ___/ __ \/ /_  /\n
-         / ,< / /_/ / ,< / /_/ (__  ) / / / / / /_\n
-        /_/|_|\__,_/_/|_|\__,_/____/_/ /_/_/ /___/\n
-        \n
-        Welcome to kakashiz,\n
-        Decentralized monitoring system for\n
-        microcomputers.\n
-        \n
-        Machine information:\n
-        [Network]\n
-         - Local IP address: {}\n
-         - Wi-Fi SSID: {}\n
-        \n
+    print("""
+            __         __              __    _    
+           / /______ _/ /______ ______/ /_  (_)___
+          / //_/ __ `/ //_/ __ `/ ___/ __ \/ /_  /
+         / ,< / /_/ / ,< / /_/ (__  ) / / / / / /_
+        /_/|_|\__,_/_/|_|\__,_/____/_/ /_/_/ /___/
+
+        Welcome to kakashiz,
+        Decentralized monitoring system for
+        microcomputers.
+
+        Machine information:
+        [Network]
+         - Local IP address: {}
+         - Wi-Fi SSID: {}
         [Clock]
-         - Current RTC time: {}/{}/{} {}:{}:{}\n
-        \n
+         - Current RTC time: {}/{}/{} {}:{}:{}
     """.format(
         # Local IP address
-        wlan[0],
+        wlan.ifconfig()[0],
         # Wi-Fi SSID
-        wlan.config('ssid'),
+        wlan.config('essid'),
         # Clock
-        machine.RTC.datetime()[0],  # Year
-        machine.RTC.datetime()[1],  # Month
-        machine.RTC.datetime()[2],  # Day
-        machine.RTC.datetime()[4],  # Hour
-        machine.RTC.datetime()[5],  # Minute
-        machine.RTC.datetime()[6],  # Sec
+        rtc.datetime()[0],  # Year
+        rtc.datetime()[1],  # Month
+        rtc.datetime()[2],  # Day
+        rtc.datetime()[4],  # Hour
+        rtc.datetime()[5],  # Minute
+        rtc.datetime()[6],  # Sec
     ))
 
     # タスクを起動
     ## Web サーバ
-    _thread.start_new_thread(httpd.run_httpd(wlan))
+    _thread.start_new_thread(httpd.run_httpd(wlan), ())
     ## 定時処理
     uasyncio.run(routine())
