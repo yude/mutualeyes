@@ -1,8 +1,5 @@
 import uasyncio
 import urequests
-# import datetime
-# import copy
-# import uuid
 
 import config
 import event
@@ -13,7 +10,7 @@ class Node:
             name: str,
             endpoint: str,
     ):
-        self.name = name,
+        self.name = name
         self.endpoint = endpoint
 
 
@@ -46,27 +43,10 @@ async def check_node(node: Node) -> str:
 
     return str(node.name)
 
-# Lock for check_node_parallel()
-check_node_lock = False
-
 async def check_node_parallel():
-    global check_node_lock
-    if check_node_lock:
-        return
-
-    check_node_lock = True
-
-    for f in uasyncio.as_completed([
-        check_node(node)
-        for node in config.NODES
-    ]):
-        finished_node = await f
-
-        print(
-            "[Check nodes] Periodical check of node {} is finished.".
-            format(finished_node)
-        )
-
-    check_node_lock = False
-
-    return
+    while True:
+        print("Check node parallel.")
+        for node in config.NODES:
+            print("Checking node {}...".format(node.name))
+            check_node(node)
+        await uasyncio.sleep(5)
