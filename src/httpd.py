@@ -19,21 +19,17 @@ async def run_httpd(wlan):
 
 @app.route('/')
 def _index(req):
-    return "200 OK!"
+    return "200 OK"
 
-@app.route('/event')
+@app.route('/event', methods=['POST'])
 def _event(req):
-    req_body = utils.auto_decode(req.body)
+    req_body = utils.auto_decode(req.content)
     if req_body is None:
-        return Response("""
-        {"result": "INVALID_JSON_FORMAT"}
-        """,content_type='text/plain')
+        return '{"result": "INVALID_JSON_FORMAT"}'
     try:
         req_json = json.loads(req_body)
     except ValueError:
-        return Response("""
-        {"result": "INVALID_JSON_FORMAT"}
-        """,content_type='text/plain')
+        return '{"result": "INVALID_JSON_FORMAT"}'
 
     query = event.query_to_event(req_json)
     if query is not None:  # クエリの解釈に成功した場合
@@ -43,10 +39,6 @@ def _event(req):
         else:
             pass
 
-        return Response("""
-        {"result": "SUCCESS"}
-        """,content_type='text/plain')
+        return '{"result": "SUCCESS"}'
     else:
-        return Response("""
-        {"result": "FAIL_TO_RECORD_EVENT"}
-        """,content_type='text/plain')
+        return '{"result": "FAIL_TO_RECORD_EVENT"}'
