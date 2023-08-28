@@ -8,13 +8,12 @@ import node
 import clock
 
 wlan = 0
-loop = asyncio.get_event_loop()
 
-async def main():
-    asyncio.create_task(schedule(node.check_node_parallel, 'every 10 secs', hrs=None, mins=None, secs=range(0, 60, 10)))
-    asyncio.create_task(httpd.run_httpd(wlan))
-    while True:
-        await asyncio.sleep(1000)
+def main():
+    loop = asyncio.get_event_loop()
+    loop.create_task(node.check_node_parallel())
+    loop.create_task(httpd.app.run())
+    loop.run_forever()
 
 if __name__ == '__main__':
     # ネットワークに接続
@@ -57,7 +56,4 @@ if __name__ == '__main__':
     ))
 
     # タスクを起動
-    try:
-        asyncio.run(main())
-    finally:
-        _ = asyncio.new_event_loop()
+    main()

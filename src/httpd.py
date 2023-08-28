@@ -5,31 +5,34 @@ import uuid
 import event
 import config
 
-from noggin import Noggin, Response, HTTPError
+from nanoweb import HttpError, Nanoweb
 
-app = Noggin()
-
-async def run_httpd(wlan):
-    """
-    http サーバーを起動します。
-    主に、監視対象ノード間のコミュニケーションに使用されます。
-    """
-    print("Starting httpd.")
-    app.serve(port=80)
+app = Nanoweb(80)
 
 @app.route('/')
-def _index(req):
-    return "200 OK"
+async def _index(req):
+    await return_ok('200 OK!')
 
-@app.route('/event', methods=['POST'])
-def _event(req):
-    req_body = utils.auto_decode(req.content)
+@app.route('/event')
+async def _event(req):
+    try:
+        content_length = int(req.headers['Content-Length'])
+        content_type = req.headers['Content-Type']
+    except KeyError:
+        raise HttpError(req, 400, '"INVALID_JSON_FORMAT"}')
+
+    if content_type != 'application/json':
+        raise HttpError(req, 400, '"INVALID_JSON_FORMAT"}') 
+    
+    req_body = (await req.read(content_length)).decode()
+
+    req_body = utils.auto_decode(req_body)
     if req_body is None:
-        return '{"result": "INVALID_JSON_FORMAT"}'
+        await return_ok(req, '{"result": "INVALID_JSON_FORMAT"}')
     try:
         req_json = json.loads(req_body)
     except ValueError:
-        return '{"result": "INVALID_JSON_FORMAT"}'
+        await return_ok(req, '{"result": "INVALID_JSON_FORMAT"}')
 
     query = event.query_to_event(req_json)
     if query is not None:  # クエリの解釈に成功した場合
@@ -39,6 +42,10 @@ def _event(req):
         else:
             pass
 
-        return '{"result": "SUCCESS"}'
+        await return_ok(req, '{"result": "SUCCESS"}')
     else:
-        return '{"result": "FAIL_TO_RECORD_EVENT"}'
+        await return_ok(req, '{"result": "FAIL_TO_RECORD_EVENT"}')
+
+async def return_ok(req, body: str):
+    await req.write("HTTP/1.1 200 OK\r\n\r\n")
+    await req.write(body)
