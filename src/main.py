@@ -1,27 +1,26 @@
-import uasyncio
-from sched.sched import schedule
+import uasyncio as asyncio
 import wifi
 import machine
 import httpd
 import _thread
+from sched.sched import schedule
 import node
 import clock
 
 wlan = 0
-loop = uasyncio.get_event_loop()
+loop = asyncio.get_event_loop()
 
-async def routine():
-    loop.create_task(schedule(node.check_node, 'every 5 secs', hrs=None, mins=None, secs=range(0, 60, 5)))
-
+async def main():
+    asyncio.create_task(schedule(node.check_node_parallel, 'every 10 secs', hrs=None, mins=None, secs=range(0, 60, 10)))
+    asyncio.create_task(httpd.run_httpd(wlan))
     while True:
-        await uasyncio.sleep(1000)
+        await asyncio.sleep(1000)
 
 if __name__ == '__main__':
     # ネットワークに接続
-    # global wlan
     wlan = wifi.prepare_wifi()
     # 時刻を設定
-    # clock.set_clock()
+    clock.set_clock()
 
     rtc = machine.RTC()
 
@@ -58,7 +57,7 @@ if __name__ == '__main__':
     ))
 
     # タスクを起動
-    ## Web サーバ
-    _thread.start_new_thread(httpd.run_httpd(wlan), ())
-    ## 定時処理
-    uasyncio.run(routine())
+    try:
+        asyncio.run(main())
+    finally:
+        _ = asyncio.new_event_loop()

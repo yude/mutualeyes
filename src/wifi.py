@@ -2,6 +2,7 @@ import rp2
 import uasyncio
 import network
 import config
+import time
 
 def prepare_wifi():
     """
@@ -30,7 +31,7 @@ def prepare_wifi():
         if wlan.status() < 0 or wlan.status() >= network.STAT_GOT_IP:
             break
         print(f'Waiting for Wi-Fi connection... (Status: {status})')
-        uasyncio.sleep(1000)
+        time.sleep(1)
     else:
         raise RuntimeError('Wi-Fi connection timed out.')
 
