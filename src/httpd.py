@@ -19,10 +19,10 @@ async def _event(req):
         content_length = int(req.headers['Content-Length'])
         content_type = req.headers['Content-Type']
     except KeyError:
-        raise HttpError(req, 400, '"INVALID_JSON_FORMAT"}')
+        raise HttpError(req, 400, '{"result": "BAD_REQUEST"}')
 
     if content_type != 'application/json':
-        raise HttpError(req, 400, '"INVALID_JSON_FORMAT"}') 
+        raise HttpError(req, 400, '{"result": "INVALID_JSON_FORMAT"}') 
     
     req_body = (await req.read(content_length)).decode()
 
