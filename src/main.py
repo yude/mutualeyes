@@ -20,6 +20,8 @@ if __name__ == '__main__':
     wlan = wifi.prepare_wifi()
     # 時刻を設定
     clock.set_clock()
+    # 前提ライブラリをインストール
+    utils.install_dependencies()
 
     rtc = machine.RTC()
 

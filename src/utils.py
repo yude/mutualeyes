@@ -1,3 +1,5 @@
+import mip
+
 def auto_decode(query: bytes, encoding=['utf8', 'cp1252']):
     for i in encoding:
         try:
@@ -7,3 +9,6 @@ def auto_decode(query: bytes, encoding=['utf8', 'cp1252']):
 
 def enum(**enums: int):
     return type('Enum', (), enums)
+
+def install_dependencies():
+    mip.install("copy")
