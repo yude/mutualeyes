@@ -1,9 +1,11 @@
 import uasyncio
 import urequests
 import utime
+import copy
 
 import config
 import event
+import constrants
 
 class Node:
     def __init__(
@@ -20,10 +22,10 @@ check_node(node: Node)
 入力されたノードに対して、稼働状況を確認する等の処理を行います。
 """
 async def check_node(node: Node) -> str:
-    print("Checking node {}...".format(node.name))
+    print("[Monitor] Checking node {}...".format(node.name))
 
     try:
-        res = urequests.get(node.endpoint)
+        res = urequests.get(node.endpoint, timeout=constrants.HTTP_GET_TIMEOUT)
         await uasyncio.sleep(2)
     except OSError as e:
         await register_event(node)
@@ -37,23 +39,22 @@ async def check_node(node: Node) -> str:
 
 async def check_node_parallel():
     while True:
-        print("Check node parallel.")
         tasks = [check_node(node) for node in config.NODES]
         await uasyncio.gather(*tasks)
         await uasyncio.sleep(5)
 
 async def register_event(node: Node):
-    print("[Check] Node {} is down.".format(node.name))
-        # ダウンしているので、新しくイベントを作成する
-        new_event = event.Event(
-            origin=copy.copy(node.name),
-            created_on=utime.time(),
-            type=event.EventType.DOWN,
-            status=event.EventStatus.WAIT_CONFIRM,
-            source=config.ME,
-            worker_node=[config.ME],
-            confirmed_on=None
-        )
+    print("[Monitor] Node {} is down.".format(node.name))
+    # ダウンしているので、新しくイベントを作成する
+    new_event = event.Event(
+        origin=copy.copy(node.name),
+        created_on=utime.time(),
+        type=event.EventType.DOWN,
+        status=event.EventStatus.WAIT_CONFIRM,
+        source=config.ME,
+        worker_node=[config.ME],
+        confirmed_on=None
+    )
 
     # 重複していれば、そこで処理を終わる
     identified = event.identify_event(new_event)
