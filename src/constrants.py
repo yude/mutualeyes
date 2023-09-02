@@ -6,3 +6,6 @@ EVENT_ACKNOWLEDGE_TIMEOUT = 6
 
 # 他のノードに通知の配信を交代させるまでの待機時間 (秒)
 EVENT_DELIVERY_TIMEOUT = 20
+
+# NTP サーバーから時刻を取得する際の最大再試行回数
+MAX_RETRY_NTP = 5

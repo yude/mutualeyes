@@ -1,5 +1,6 @@
 import uasyncio
 import urequests
+import utime
 
 import config
 import event
@@ -19,13 +20,35 @@ check_node(node: Node)
 入力されたノードに対して、稼働状況を確認する等の処理を行います。
 """
 async def check_node(node: Node) -> str:
-    res = urequests.get(node.endpoint)
+    print("Checking node {}...".format(node.name))
+
+    try:
+        res = urequests.get(node.endpoint)
+        await uasyncio.sleep(2)
+    except OSError as e:
+        await register_event(node)
+        return str(node.name)
 
     if res.status_code != 200:
+        await register_event(node)
+        return str(node.name)
+    
+    return str(node.name)
+
+async def check_node_parallel():
+    while True:
+        print("Check node parallel.")
+        tasks = [check_node(node) for node in config.NODES]
+        await uasyncio.gather(*tasks)
+        await uasyncio.sleep(5)
+
+async def register_event(node: Node):
+    if down:
+        print("[Check] Node {} is down.".format(node.name))
         # ダウンしているので、新しくイベントを作成する
         new_event = event.Event(
             origin=copy.copy(node.name),
-            created_on=datetime.datetime.now(),
+            created_on=utime.time(),
             type=event.EventType.DOWN,
             status=event.EventStatus.WAIT_CONFIRM,
             source=config.ME,
@@ -40,13 +63,3 @@ async def check_node(node: Node) -> str:
 
         # 重複していなければ、登録する
         event.events[str(uuid.uuid1())] = new_event
-
-    return str(node.name)
-
-async def check_node_parallel():
-    while True:
-        print("Check node parallel.")
-        for node in config.NODES:
-            print("Checking node {}...".format(node.name))
-            check_node(node)
-        await uasyncio.sleep(5)
