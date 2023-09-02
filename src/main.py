@@ -6,6 +6,7 @@ import _thread
 from sched.sched import schedule
 import node
 import clock
+import utils
 
 wlan = 0
 
