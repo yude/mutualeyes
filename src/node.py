@@ -43,8 +43,7 @@ async def check_node_parallel():
         await uasyncio.sleep(5)
 
 async def register_event(node: Node):
-    if down:
-        print("[Check] Node {} is down.".format(node.name))
+    print("[Check] Node {} is down.".format(node.name))
         # ダウンしているので、新しくイベントを作成する
         new_event = event.Event(
             origin=copy.copy(node.name),
@@ -56,10 +55,10 @@ async def register_event(node: Node):
             confirmed_on=None
         )
 
-        # 重複していれば、そこで処理を終わる
-        identified = event.identify_event(new_event)
-        if identified is not None:
-            return str(node.name)
+    # 重複していれば、そこで処理を終わる
+    identified = event.identify_event(new_event)
+    if identified is not None:
+        return str(node.name)
 
-        # 重複していなければ、登録する
-        event.events[str(uuid.uuid1())] = new_event
+    # 重複していなければ、登録する
+    event.events[str(uuid.uuid1())] = new_event
