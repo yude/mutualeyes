@@ -8,7 +8,7 @@ def set_clock():
     # Retry 3 times
     for i in range(1, constrants.MAX_RETRY_NTP + 1):
         try:
-            result = ntptime.settime()
+            ntptime.settime()
         except Exception as e:
             print(
                 "[Clock] Failed to retrieve current time from NTP, retrying. (Retry: {i}/{max_i})".format(
