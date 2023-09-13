@@ -22,5 +22,9 @@
     "python.linting.enabled": true,
     "micropico.syncFolder": "",
     "micropico.openOnStart": false,
-    "micropico.manualComDevice": "/dev/ttyACM0"
+    "micropico.manualComDevice": "/dev/ttyACM0",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
 }
