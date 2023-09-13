@@ -1,6 +1,10 @@
 import event
 import constrants
+import utils
+import config
+
 import utime
+import urequests
 
 
 def get_notify_workers(e: event.Event) -> str | None:
@@ -26,17 +30,52 @@ def get_notify_workers(e: event.Event) -> str | None:
     return e.worker_node[node_index]
 
 
-def send_to_discord(e: event.Event) -> bool:
+def send_to_discord(event_id: str) -> bool:
+    e = event.events[event_id]
+
     """
     入力されたイベントの通知を、
     Discord のテキストチャンネルに配信します。
 
     返り値は配信の成否です。
     """
+
+    message_body = """
+    {
+        "content": "",
+        "tts": false,
+        "embeds": [
+            {
+            "id": 671003818,
+            "description": "発生日時: {}",
+            "fields": [],
+            "title": "{} is now {}"
+            }
+        ],
+        "components": [],
+        "actions": {{}},
+        "username": "kakashiz"
+    }
+    """.format(
+        utils.format_epoch(e.created_on), e.origin, utils.format_event_type(e.type)
+    )
+
+    try:
+        res = urequests.post(
+            config.DISCORD_WEBHOOK_URL,
+            headers={"Content-Type": "application/json"},
+            data=message_body,
+        )
+
+        res.close()
+    except Exception:
+        print("[Warning] Failed to deliver event {} to Discord.".format(event_id))
+        return False
+
     return True
 
 
-def delivery(e: event.Event) -> bool:
+def delivery(event_id: str) -> bool:
     """
     事前定義された配信先に、入力されたイベントの通知を配信します。
 
@@ -45,7 +84,7 @@ def delivery(e: event.Event) -> bool:
 
     succeeded = True
 
-    if send_to_discord(e) is False:
+    if send_to_discord(event_id) is False:
         succeeded = False
 
     return succeeded
