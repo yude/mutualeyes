@@ -1,23 +1,11 @@
 import utime
 import json
-
+import copy
 import uasyncio
 
-import utils
 import constrants
 import config
 import notify
-
-EventType = utils.enum(UP=1, DOWN=2, UNKNOWN=3)
-
-EventStatus = utils.enum(
-    # このイベントに対して、通知を発行するまでの待機状態
-    WAIT_CONFIRM=1,
-    # このイベントに対して、通知を発行したことを確認した状態
-    DONE=2,
-    # このイベントが、通知の配送を待機している状態
-    WAIT_DELIVERY=3,
-)
 
 
 class Event:
@@ -25,8 +13,8 @@ class Event:
         self,
         origin: str,  # イベントの発生元
         created_on: int,  # イベントの発生日時 (エポック以降の秒数)
-        type: EventType,  # イベントの種類, event.EventType を使用する
-        status: EventStatus,  # イベントの状態, event.EventStatus を使用する
+        type: str,  # イベントの種類
+        status: str,  # イベントの状態
         worker_node: list,  # イベントを認識しているノード
         confirmed_on: int | None,  # イベントの通知を配信すべき時刻 (エポック以降の秒数)
         source: str | None = None,  # イベントの取得元、POST リクエストの処理時に使用する
@@ -56,21 +44,7 @@ def event_to_query(event: Event) -> str:
     worker_node_dict = set(copy.copy(e.worker_node))
     e.worker_node = list(worker_node_dict)
 
-    # 適当なフォーマットに整形します。
-    def serialize_default(obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.strftime("%Y-%m-%d %H:%M:%S")
-
-        if isinstance(obj, EventType):
-            if obj is EventType.UP:
-                return "up"
-            if obj is EventType.DOWN:
-                return "down"
-            return "unknown"
-
-        raise TypeError("Type %s is not serializable" % type(obj))
-
-    return json.dumps(e.__dict__, default=serialize_default)  # type: ignore
+    return json.dumps(e.__dict__)  # type: ignore
 
 
 def query_to_event(json_str: str) -> Event | None:
@@ -85,18 +59,11 @@ def query_to_event(json_str: str) -> Event | None:
     except:  # noqa: E722
         return None
 
-    if parsed_query.type == "up":
-        event_type = EventType.UP
-    elif parsed_query.type == "down":
-        event_type = EventType.DOWN
-    else:
-        event_type = EventType.UNKNOWN
-
     event = Event(
         origin=parsed_query.origin,
         created_on=int(parsed_query.created_on),
-        type=event_type,
-        status=EventStatus.WAIT_CONFIRM,
+        type=parsed_query.event_type,
+        status="WAIT_CONFIRM",
         worker_node=[config.ME],
         confirmed_on=None,
     )
@@ -114,14 +81,13 @@ async def identify_event(target: Event) -> Event | None:
         # イベントの発生元 (ターゲット) とイベントの種類が等しい
         if events[e].origin == target.origin and events[e].type == target.type:
             # イベントの発生日時の差が一定の値に収まっているかを確認する
-            if abs(events[e].created_on - target.created_on) < constrants.SAME_EVENT_TIME_LAG * 60:
+            if (
+                abs(events[e].created_on - target.created_on)
+                < constrants.SAME_EVENT_TIME_LAG * 60
+            ):
                 return events[e]
 
     return None
-
-
-# Lock for check_event_parallel()
-check_event_lock = False
 
 
 async def check_event(event_id: str) -> str:
@@ -133,35 +99,31 @@ async def check_event(event_id: str) -> str:
     """
     e = events[event_id]
 
-    if e.status == EventStatus.DONE:  # 既に通知を配信済み
+    if e.status == "DELIVERED":  # 既に通知を配信済み
         return event_id
 
-    if e.status == EventStatus.WAIT_CONFIRM:  # 通知の配信の決定待ち
+    if e.status == "WAIT_CONFIRM":  # 通知の配信の決定待ち
         diff = abs(e.created_on - utime.time())
         if diff < 60 * constrants.EVENT_ACKNOWLEDGE_TIMEOUT:  # イベント作成から一定時間内
             # 何もしない
             return event_id
 
-        e.status = EventStatus.WAIT_DELIVERY
+        e.status = "WAIT_DELIVERY"
 
-    if e.status == EventStatus.WAIT_DELIVERY:  # 通知の配信待ち
+    if e.status == "WAIT_DELIVERY":  # 通知の配信待ち
         delivery_actor = notify.get_notify_workers(e)
         if delivery_actor == config.ME:
-            succeeded = notify.delivery(e)
+            succeeded = notify.delivery(event_id)
             if succeeded:
-                e.status = EventStatus.DONE
+                e.status = "DELIVERED"
 
     return event_id
 
 
 async def check_event_parallel():
-    global check_event_lock
-    if check_event_lock:
-        return
-
-    check_event_lock = True
-
     for e in uasyncio.as_completed([check_event(event_id) for event_id in events]):
         finished_event = await e
 
         print("Scheduled tasks for event {} is finished.".format(finished_event))
+
+    uasyncio.sleep(5)

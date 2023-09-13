@@ -3,7 +3,6 @@ import utils
 import uuid
 
 import event
-import config
 
 from nanoweb import HttpError, Nanoweb
 
