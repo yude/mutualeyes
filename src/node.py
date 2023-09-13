@@ -25,21 +25,33 @@ check_node(node: Node)
 """
 
 
-async def check_node(node: Node) -> str:
-    print("[Monitor] Checking node {}...".format(node.name))
+async def check_node(target: Node) -> str:
+    print("[Monitor] Checking node {}...".format(target.name))
 
     try:
-        res = urequests.get(node.endpoint, timeout=constrants.HTTP_GET_TIMEOUT)
+        res = urequests.get(target.endpoint, timeout=constrants.HTTP_GET_TIMEOUT)
         await uasyncio.sleep(2)
     except OSError as e:
-        await register_event(node)
-        return str(node.name)
+        if target.status != NodeStatus.DOWN:
+            target.status = NodeStatus.DOWN
+            await register_event(target, event.EventType.DOWN)
+        return str(target.name)
 
     if res.status_code != 200:
-        await register_event(node)
-        return str(node.name)
+        if target.status != NodeStatus.DOWN:
+            target.status = NodeStatus.DOWN
+            await register_event(target, event.EventType.DOWN)
+        return str(target.name)
 
-    return str(node.name)
+    if target.status == None or target.status == NodeStatus.UNKNOWN:
+        target.status = NodeStatus.UP
+
+    if target.status == NodeStatus.DOWN:
+        target.status = NodeStatus.UP
+        await register_event(target, event.EventType.UP)
+        return str(target.name)
+
+    return str(target.name)
 
 
 async def check_node_parallel():
@@ -49,8 +61,12 @@ async def check_node_parallel():
         await uasyncio.sleep(5)
 
 
-async def register_event(node: Node):
-    print("[Monitor] Node {} is down.".format(node.name))
+async def register_event(node: Node, event_type: event.EventType):
+    print(
+        "[Monitor] Node {} is now {}.".format(
+            node.name,
+        )
+    )
     # ダウンしているので、新しくイベントを作成する
     new_event = event.Event(
         origin=copy.copy(node.name),
