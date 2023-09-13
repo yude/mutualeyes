@@ -62,11 +62,7 @@ async def check_node_parallel():
 
 
 async def register_event(node: Node, event_type: event.EventType):
-    print(
-        "[Monitor] Node {} is now {}.".format(
-            node.name,
-        )
-    )
+    print("[Monitor] Node {} is now {}.".format(node.name, event_type))
     # ダウンしているので、新しくイベントを作成する
     new_event = event.Event(
         origin=copy.copy(node.name),
