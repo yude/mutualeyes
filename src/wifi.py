@@ -1,8 +1,7 @@
-import rp2
-import uasyncio
 import network
 import config
 import time
+
 
 def prepare_wifi():
     """
@@ -16,12 +15,14 @@ def prepare_wifi():
 
     wlan = network.WLAN(network.STA_IF)
     if config.WIFI_USE_DHCP is False:
-        wlan.ifconfig((
-            config.WIFI_STATIC_IP,
-            config.WIFI_SUBNET_MASK,
-            config.WIFI_DEFAULT_GATEWAY,
-            config.WIFI_DNS,
-        ))
+        wlan.ifconfig(
+            (
+                config.WIFI_STATIC_IP,
+                config.WIFI_SUBNET_MASK,
+                config.WIFI_DEFAULT_GATEWAY,
+                config.WIFI_DNS,
+            )
+        )
     wlan.active(True)
 
     wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
@@ -30,17 +31,18 @@ def prepare_wifi():
         status = wlan.status()
         if wlan.status() < 0 or wlan.status() >= network.STAT_GOT_IP:
             break
-        print(f'Waiting for Wi-Fi connection... (Status: {status})')
+        print(f"Waiting for Wi-Fi connection... (Status: {status})")
         time.sleep(1)
     else:
-        raise RuntimeError('Wi-Fi connection timed out.')
+        raise RuntimeError("Wi-Fi connection timed out.")
 
     wlan_status = wlan.status()
 
     if wlan_status != network.STAT_GOT_IP:
         raise RuntimeError(
-            'Failed to establish Wi-Fi connection. (Status: {})'.format(wlan_status))
+            "Failed to establish Wi-Fi connection. (Status: {})".format(wlan_status)
+        )
 
-    print('Wi-Fi connection is ready! ifconfig:', wlan.ifconfig())
+    print("Wi-Fi connection is ready! ifconfig:", wlan.ifconfig())
 
     return wlan

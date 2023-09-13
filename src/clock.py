@@ -1,19 +1,20 @@
-import machine
 import ntptime
 import time
 
 import constrants
 
+
 def set_clock():
-    rtc = machine.RTC()
     # Retry 3 times
     for i in range(1, constrants.MAX_RETRY_NTP + 1):
         try:
             result = ntptime.settime()
         except Exception as e:
-            print("[Clock] Failed to retrieve current time from NTP, retrying. (Retry: {i}/{max_i})".format(
-                i=i, max_i=constrants.MAX_RETRY_NTP
-                ))
+            print(
+                "[Clock] Failed to retrieve current time from NTP, retrying. (Retry: {i}/{max_i})".format(
+                    i=i, max_i=constrants.MAX_RETRY_NTP
+                )
+            )
             time.sleep(2)
         else:
             print("[Clock] Successfully retrieved current time.")

@@ -1,7 +1,7 @@
 import event
 import constrants
+import utime
 
-# import datetime
 
 def get_notify_workers(e: event.Event) -> str | None:
     """
@@ -15,18 +15,16 @@ def get_notify_workers(e: event.Event) -> str | None:
         return None
 
     # 入力されたイベントの通知を配信すると確定してからの経過時間 (秒)
-    diff = abs(
-        datetime.datetime.now() - e.confirmed_on
-    ).seconds
+    diff = abs(utime.time() - e.confirmed_on)
 
     # このイベントを認知しているノードのなかで、誰が配信するかを決定する
     # node_index は登録されているノードの名前を ascii 順に並べたときのインデックス
     node_index = diff / constrants.EVENT_DELIVERY_TIMEOUT
     if node_index > len(e.worker_node) - 1:
         node_index = len(e.worker_node) - 1
-    
+
     return e.worker_node[node_index]
-    
+
 
 def send_to_discord(e: event.Event) -> bool:
     """
@@ -36,6 +34,7 @@ def send_to_discord(e: event.Event) -> bool:
     返り値は配信の成否です。
     """
     return True
+
 
 def delivery(e: event.Event) -> bool:
     """

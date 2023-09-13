@@ -1,8 +1,6 @@
-# from enum import Enum
 import utime
 import json
 
-# import copy
 import uasyncio
 
 import utils

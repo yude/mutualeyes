@@ -2,25 +2,29 @@ import uasyncio
 import urequests
 import utime
 import copy
+import uuid
 
+import utils
 import config
 import event
 import constrants
 
+NodeStatus = utils.enum(UP=1, DOWN=2, UNKNOWN=3)
+
+
 class Node:
-    def __init__(
-            self,
-            name: str,
-            endpoint: str,
-    ):
+    def __init__(self, name: str, endpoint: str, status: NodeStatus | None = None):
         self.name = name
         self.endpoint = endpoint
+        self.status = status
 
 
 """
 check_node(node: Node)
 入力されたノードに対して、稼働状況を確認する等の処理を行います。
 """
+
+
 async def check_node(node: Node) -> str:
     print("[Monitor] Checking node {}...".format(node.name))
 
@@ -34,14 +38,16 @@ async def check_node(node: Node) -> str:
     if res.status_code != 200:
         await register_event(node)
         return str(node.name)
-    
+
     return str(node.name)
+
 
 async def check_node_parallel():
     while True:
         tasks = [check_node(node) for node in config.NODES]
         await uasyncio.gather(*tasks)
         await uasyncio.sleep(5)
+
 
 async def register_event(node: Node):
     print("[Monitor] Node {} is down.".format(node.name))
@@ -53,7 +59,7 @@ async def register_event(node: Node):
         status=event.EventStatus.WAIT_CONFIRM,
         source=config.ME,
         worker_node=[config.ME],
-        confirmed_on=None
+        confirmed_on=None,
     )
 
     # 重複していれば、そこで処理を終わる
