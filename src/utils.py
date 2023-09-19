@@ -21,6 +21,9 @@ def install_dependencies() -> None:
 
 
 def event_type_to_color(event_type: str) -> str:
+    """
+    イベントの種類に合う色を 10 進数で返します。
+    """
     if event_type == "NODE_DOWN":
         return "16744319"
 
@@ -31,6 +34,9 @@ def event_type_to_color(event_type: str) -> str:
 
 
 def format_epoch(epoch: int) -> str:
+    """
+    utime の日時タプルをフォーマットされた文字列で返します。
+    """
     datetime_tuple = utime.localtime(epoch)
     return "{}/{}/{} {}:{}:{}".format(
         datetime_tuple[0],
@@ -43,6 +49,10 @@ def format_epoch(epoch: int) -> str:
 
 
 def format_event_type(event_type: str) -> str:
+    """
+    イベントの種類を示す文字列のうち、内部で扱っているものから
+    チャットツール等に表示するものに変換します。
+    """
     if event_type == "NODE_UP":
         return "Up"
 

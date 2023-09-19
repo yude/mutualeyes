@@ -19,8 +19,8 @@ class Node:
 
 async def check_node(target: Node) -> str:
     """
-    check_node(node: Node)
-    入力されたノードに対して、稼働状況を確認する等の処理を行います。"""
+    入力されたノードに対して、稼働状況を確認する等の処理を行います。
+    """
     print("[Monitor] Checking node {}...".format(target.name))
 
     try:
@@ -50,6 +50,9 @@ async def check_node(target: Node) -> str:
 
 
 async def check_node_parallel():
+    """
+    check_node() を uasyncio を使って非同期的に実行します。
+    """
     while True:
         tasks = [check_node(node) for node in config.NODES]
         await uasyncio.gather(*tasks)
@@ -57,6 +60,9 @@ async def check_node_parallel():
 
 
 async def register_event(node: Node, event_type: str):
+    """
+    イベントをノード内のイベント一覧に登録します。
+    """
     print(
         "[Monitor] Node {} is now {}.".format(
             node.name, utils.format_event_type(event_type)
