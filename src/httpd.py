@@ -3,10 +3,11 @@ import utils
 import uuid
 
 import event
+import config
 
 from nanoweb import HttpError, Nanoweb
 
-app = Nanoweb(80)
+app = Nanoweb(config.HTTP_PORT)
 
 
 @app.route("/")

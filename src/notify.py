@@ -40,23 +40,23 @@ def send_to_discord(event_id: str) -> bool:
     返り値は配信の成否です。
     """
 
-    message_body = """
-    {
-        "content": "",
-        "tts": false,
-        "embeds": [
-            {
-            "id": 671003818,
-            "description": "発生日時: {}",
-            "fields": [],
-            "title": "{} is now {}"
-            }
-        ],
-        "components": [],
-        "actions": {{}},
-        "username": "kakashiz"
-    }
-    """.format(
+    message_body = """{
+                    "content": "",
+                    "tts": false,
+                    "embeds": [
+                        {
+                        "id": 671003818,
+                        "description": "発生日時: {}",
+                        "fields": [],
+                        "title": "{} is now {}"
+                        }
+                    ],
+                    "components": [],
+                    "actions": {{}},
+                    "username": "kakashiz"
+                    }"""
+
+    message_body = message_body.format(
         utils.format_epoch(e.created_on), e.origin, utils.format_event_type(e.type)
     )
 
