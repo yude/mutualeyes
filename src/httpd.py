@@ -1,6 +1,7 @@
 import json
 import utils
 import uuid
+import machine
 
 import event
 import config
@@ -12,6 +13,11 @@ app = Nanoweb(config.HTTP_PORT)
 
 @app.route("/")
 async def _index(req):
+    rtc = machine.RTC()
+    if rtc.datetime()[5] % 2 == 0:
+        if rtc.datetime()[6] / 5 % 2 == 1:
+            return None
+
     await return_ok(req, "200 OK!")
 
 
