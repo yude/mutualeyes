@@ -14,18 +14,22 @@ def prepare_wifi():
     network.country(config.WIFI_COUNTRY_CODE)
 
     wlan = network.WLAN(network.STA_IF)
-    if config.WIFI_USE_DHCP is False:
-        wlan.ifconfig(
-            (
-                config.WIFI_STATIC_IP,
-                config.WIFI_SUBNET_MASK,
-                config.WIFI_DEFAULT_GATEWAY,
-                config.WIFI_DNS,
+    print("[Info] Trying to connect to {}".format(config.WIFI_SSID))
+    if not wlan.isconnected():
+        print("[Info] Trying to connect to {}".format(config.WIFI_SSID))
+        wlan.active(True)
+        wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
+        if config.WIFI_USE_DHCP is False:
+            wlan.ifconfig(
+                (
+                    config.WIFI_STATIC_IP,
+                    config.WIFI_SUBNET_MASK,
+                    config.WIFI_DEFAULT_GATEWAY,
+                    config.WIFI_DNS,
+                )
             )
-        )
-    wlan.active(True)
-
-    wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
+        while not wlan.isconnected():
+            pass
 
     for i in range(10):
         status = wlan.status()
