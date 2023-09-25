@@ -17,15 +17,19 @@ class Node:
         self.status = status
 
 
-async def check_node(target: Node) -> str:
+async def check_node(target: Node) -> str | None:
     """
     入力されたノードに対して、稼働状況を確認する等の処理を行います。
     """
+
+    if target.name == utils.whoami():
+        return None
+
     print("[Monitor] Checking node {}...".format(target.name))
 
     try:
         res = urequests.get(target.endpoint, timeout=constrants.HTTP_GET_TIMEOUT)
-        await uasyncio.sleep(2)
+        await uasyncio.sleep(5)
     except OSError:
         if target.status != "NODE_DOWN":
             target.status = "NODE_DOWN"
@@ -56,7 +60,7 @@ async def check_node_parallel():
     while True:
         tasks = [check_node(node) for node in config.NODES]
         await uasyncio.gather(*tasks)
-        await uasyncio.sleep(5)
+        await uasyncio.sleep(15)
 
 
 async def register_event(node: Node, event_type: str):
