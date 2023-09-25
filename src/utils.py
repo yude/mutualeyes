@@ -1,7 +1,8 @@
 import mip
 import utime
+import network
 
-import event
+import config
 
 
 def auto_decode(query: bytes, encoding=["utf8", "cp1252"]):
@@ -17,7 +18,8 @@ def enum(**enums: int):
 
 
 def install_dependencies() -> None:
-    mip.install("copy")
+    # mip.install("copy")
+    return
 
 
 def event_type_to_color(event_type: str) -> str:
@@ -60,3 +62,35 @@ def format_event_type(event_type: str) -> str:
         return "Down"
 
     return "Unknown"
+
+def stringify_mac(mac_string):
+    res = ""
+    for b in mac_string:
+        res += "%02x:" % (b)
+    
+    res = res[:-1]
+    return res
+
+def whoami():
+    # Static detection
+    if config.ME != "":
+        return config.ME
+    
+    wlan = network.WLAN(network.STA_IF)
+
+    # Automatically detect by local IP address
+    for node in config.NODES:
+        sub_1 = "//"
+        sub_2 = ":"
+
+        idx_1 = node.endpoint.index(sub_1) - 1
+        idx_2 = node.endpoint.rfind(sub_2)
+
+        host = ''
+
+        for idx in range(idx_1 + len(sub_1) + 1, idx_2):
+            host = host + node.endpoint[idx]
+        
+        if host == wlan.ifconfig()[0]:
+            config.ME = node.name
+            return node.name
