@@ -37,6 +37,7 @@ async def check_node(target: Node) -> str | None:
         return str(target.name)
 
     if res.status_code != 200:
+        print("[Monitor] Node {} is still up.".format(target.name))
         if target.status != "NODE_DOWN":
             target.status = "NODE_DOWN"
             await register_event(target, "NODE_DOWN")
