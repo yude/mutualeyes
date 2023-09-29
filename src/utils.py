@@ -1,9 +1,8 @@
-import mip
 import utime
 import network
 
 import config
-
+import utils
 
 def auto_decode(query: bytes, encoding=["utf8", "cp1252"]):
     for i in encoding:
@@ -40,15 +39,17 @@ def format_epoch(epoch: int) -> str:
     utime の日時タプルをフォーマットされた文字列で返します。
     """
     datetime_tuple = utime.localtime(epoch)
-    return "{}/{}/{} {}:{}:{}".format(
+    return "{}/{}/{} {}:{:02}:{:02} UTC".format(
         datetime_tuple[0],
         datetime_tuple[1],
         datetime_tuple[2],
+        datetime_tuple[3],
         datetime_tuple[4],
         datetime_tuple[5],
-        datetime_tuple[6],
     )
 
+def print_log(msg: str):
+    print(utils.format_epoch(utime.time()) + ": " + msg)
 
 def format_event_type(event_type: str) -> str:
     """

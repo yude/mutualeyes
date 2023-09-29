@@ -69,7 +69,7 @@ def send_to_discord(event_id: str) -> bool:
 
         res.close()
     except Exception:
-        print("[Warning] Failed to deliver event {} to Discord.".format(event_id))
+        utils.print_log("[Warning] Failed to deliver event {} to Discord.".format(event_id))
         return False
 
     return True

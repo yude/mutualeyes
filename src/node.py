@@ -25,7 +25,7 @@ async def check_node(target: Node) -> str | None:
     if target.name == utils.whoami():
         return None
 
-    print("[Monitor] Checking node {}...".format(target.name))
+    utils.print_log("[Monitor] Checking node {}...".format(target.name))
 
     try:
         res = urequests.get(target.endpoint, timeout=constrants.HTTP_GET_TIMEOUT)
@@ -33,7 +33,7 @@ async def check_node(target: Node) -> str | None:
         await uasyncio.sleep(2)
     except OSError:
         if target.status != "NODE_DOWN":
-            print("[Monitor] Node {} is down.".format(target.name))
+            utils.print_log("[Monitor] Node {} is down.".format(target.name))
             target.status = "NODE_DOWN"
             await register_event(target, "NODE_DOWN")
         return str(target.name)
@@ -45,7 +45,7 @@ async def check_node(target: Node) -> str | None:
         return str(target.name)
 
     if target.status == "NODE_DOWN":
-        print("[Monitor] Node {} is restored.".format(target.name))
+        utils.print_log("[Monitor] Node {} is restored.".format(target.name))
         target.status = "NODE_UP"
         await register_event(target, "NODE_UP")
         return str(target.name)
@@ -53,7 +53,7 @@ async def check_node(target: Node) -> str | None:
     if target.status is None or target.status == "NODE_UNKNOWN":
         target.status = "NODE_UP"
 
-    print("[Monitor] Node {} is up.".format(target.name))
+    utils.print_log("[Monitor] Node {} is up.".format(target.name))
     return str(target.name)
 
 

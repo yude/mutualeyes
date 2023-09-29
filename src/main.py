@@ -2,6 +2,7 @@ import uasyncio as asyncio
 import wifi
 import machine
 import httpd
+import utime
 import node
 import clock
 import utils
@@ -50,7 +51,7 @@ if __name__ == "__main__":
          - MAC address: {}
          - Wi-Fi SSID: {}
         [Clock]
-         - Current RTC time: {}/{}/{} {}:{}:{}
+         - Current RTC time: {}
     """.format(
             # Whoami
             utils.whoami(),
@@ -61,12 +62,7 @@ if __name__ == "__main__":
             # Wi-Fi SSID
             wlan.config("essid"),
             # Clock
-            rtc.datetime()[0],  # Year
-            rtc.datetime()[1],  # Month
-            rtc.datetime()[2],  # Day
-            rtc.datetime()[4],  # Hour
-            rtc.datetime()[5],  # Minute
-            rtc.datetime()[6],  # Sec
+            utils.format_epoch(utime.time())
         )
     )
 
