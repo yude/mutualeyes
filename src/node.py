@@ -29,28 +29,31 @@ async def check_node(target: Node) -> str | None:
 
     try:
         res = urequests.get(target.endpoint, timeout=constrants.HTTP_GET_TIMEOUT)
-        await uasyncio.sleep(5)
+        res.close()
+        await uasyncio.sleep(2)
     except OSError:
         if target.status != "NODE_DOWN":
+            print("[Monitor] Node {} is down.".format(target.name))
             target.status = "NODE_DOWN"
             await register_event(target, "NODE_DOWN")
         return str(target.name)
 
     if res.status_code != 200:
-        print("[Monitor] Node {} is still up.".format(target.name))
         if target.status != "NODE_DOWN":
             target.status = "NODE_DOWN"
             await register_event(target, "NODE_DOWN")
         return str(target.name)
 
-    if target.status is None or target.status == "NODE_UNKNOWN":
-        target.status = "NODE_UP"
-
     if target.status == "NODE_DOWN":
+        print("[Monitor] Node {} is restored.".format(target.name))
         target.status = "NODE_UP"
         await register_event(target, "NODE_UP")
         return str(target.name)
 
+    if target.status is None or target.status == "NODE_UNKNOWN":
+        target.status = "NODE_UP"
+
+    print("[Monitor] Node {} is up.".format(target.name))
     return str(target.name)
 
 
@@ -68,11 +71,6 @@ async def register_event(node: Node, event_type: str):
     """
     イベントをノード内のイベント一覧に登録します。
     """
-    print(
-        "[New event] Node {} is now {}.".format(
-            node.name, utils.format_event_type(event_type)
-        )
-    )
 
     # 新しくイベントを作成する
     new_event = event.Event(
