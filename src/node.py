@@ -11,16 +11,20 @@ import constrants
 
 
 class Node:
-    def __init__(self, name: str, endpoint: str, status: str | None = None):
+    def __init__(self, name: str, endpoint: str, status: str | None = None, down_count: int):
         self.name = name
         self.endpoint = endpoint
         self.status = status
+        self.down_count = down_count
 
 
 async def check_node(target: Node) -> str | None:
     """
     入力されたノードに対して、稼働状況を確認する等の処理を行います。
     """
+
+    if target.down_count is None:
+        target.down_count = 0
 
     if target.name == utils.whoami():
         return None
@@ -33,20 +37,33 @@ async def check_node(target: Node) -> str | None:
         await uasyncio.sleep(2)
     except OSError:
         if target.status != "NODE_DOWN":
-            utils.print_log("[Monitor] Node {} is down.".format(target.name))
-            target.status = "NODE_DOWN"
-            await register_event(target, "NODE_DOWN")
+            target.down_count = target.down_count + 1
+
+            if target.down_count > 2:
+                utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 3)".format(target.name, target.down_count))
+                utils.print_log("[Monitor] Node {} seems to be down.".format(target.name))
+                target.status = "NODE_DOWN"
+                await register_event(target, "NODE_DOWN")
+            else:
+                utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 3)".format(target.name, target.down_count))
         return str(target.name)
 
     if res.status_code != 200:
         if target.status != "NODE_DOWN":
-            target.status = "NODE_DOWN"
-            await register_event(target, "NODE_DOWN")
+            target.down_count = target.down_count + 1
+
+            if target.down_count > 2:
+                utils.print_log("[Monitor] Node {} is down.".format(target.name))
+                target.status = "NODE_DOWN"
+                await register_event(target, "NODE_DOWN")
+            else:
+                utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 2)".format(target.name, target.down_count))
         return str(target.name)
 
     if target.status == "NODE_DOWN":
         utils.print_log("[Monitor] Node {} is restored.".format(target.name))
         target.status = "NODE_UP"
+        target.down_count = 0
         await register_event(target, "NODE_UP")
         return str(target.name)
 
