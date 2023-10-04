@@ -61,7 +61,7 @@ async def check_node(target: Node) -> str | None:
         return str(target.name)
 
     if target.status == "NODE_DOWN":
-        utils.print_log("[Monitor] Node {} is restored.".format(target.name))
+        utils.print_log("[Monitor] Node {} is recovered.".format(target.name))
         target.status = "NODE_UP"
         target.down_count = 0
         await register_event(target, "NODE_UP")
