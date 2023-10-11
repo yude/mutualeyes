@@ -103,11 +103,13 @@ async def check_event(event_id: str) -> str:
         return event_id
 
     if e.status == "WAIT_CONFIRM":  # 通知の配信の決定待ち
+        # タイムアウト
         diff = abs(e.created_on - utime.time())
         if diff < 60 * constrants.EVENT_ACKNOWLEDGE_TIMEOUT:  # イベント作成から一定時間内
             # 何もしない
             return event_id
 
+        utils.print_log("[Event] Event " + event_id + " became WAIT_DELIVERY state.")
         e.status = "WAIT_DELIVERY"
 
     if e.status == "WAIT_DELIVERY":  # 通知の配信待ち
@@ -116,6 +118,7 @@ async def check_event(event_id: str) -> str:
             succeeded = notify.delivery(event_id)
             if succeeded:
                 e.status = "DELIVERED"
+                utils.print_log("[Event] Event " + event_id + " is done.")
 
     return event_id
 

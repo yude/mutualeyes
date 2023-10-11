@@ -95,9 +95,9 @@ async def register_event(node: Node, event_type: str):
         created_on=utime.time(),
         type=event_type,
         status="WAIT_CONFIRM",
-        source=config.ME,
-        worker_node=[config.ME],
-        confirmed_on=None,
+        source=utils.whoami(),
+        worker_node=[utils.whoami()],
+        confirmed_on=[utils.whoami()],
     )
 
     # 重複していれば、そこで処理を終わる
