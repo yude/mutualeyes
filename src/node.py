@@ -11,11 +11,14 @@ import constrants
 
 
 class Node:
-    def __init__(self, name: str, endpoint: str, status: str | None = None, down_count: int):
+    def __init__(self, name: str, endpoint: str, status: str | None = None, down_count: int = 0):
         self.name = name
         self.endpoint = endpoint
         self.status = status
         self.down_count = down_count
+
+    def __lt__(self, other):
+        return self.name < other.name
 
 
 async def check_node(target: Node) -> str | None:
@@ -97,7 +100,7 @@ async def register_event(node: Node, event_type: str):
         status="WAIT_CONFIRM",
         source=utils.whoami(),
         worker_node=[utils.whoami()],
-        confirmed_on=[utils.whoami()],
+        confirmed_on=utime.time(),
     )
 
     # 重複していれば、そこで処理を終わる

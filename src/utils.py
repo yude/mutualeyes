@@ -72,7 +72,7 @@ def stringify_mac(mac_string):
     res = res[:-1]
     return res
 
-def whoami():
+def whoami() -> str:
     # Static detection
     if config.ME != "":
         return config.ME
@@ -95,3 +95,15 @@ def whoami():
         if host == wlan.ifconfig()[0]:
             config.ME = node.name
             return node.name
+    
+    raise RuntimeError("Cannot detect whoami")
+
+def get_healthy_node():
+    healthy: list[str] = []
+    for node in config.NODES:
+        if node.status == "NODE_UP":
+            healthy.append(node.name)
+    
+    healthy.sort()
+    
+    return healthy

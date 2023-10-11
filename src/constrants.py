@@ -11,4 +11,4 @@ EVENT_DELIVERY_TIMEOUT = 20
 MAX_RETRY_NTP = 5
 
 # 他ノードのエンドポイントにアクセスする際のタイムアウト時間 (秒, float)
-HTTP_GET_TIMEOUT=2.5
+HTTP_GET_TIMEOUT = 2.5

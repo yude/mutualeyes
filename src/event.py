@@ -3,6 +3,7 @@ import json
 import copy
 import uasyncio
 
+import utils
 import constrants
 import config
 import notify
@@ -15,7 +16,7 @@ class Event:
         created_on: int,  # イベントの発生日時 (エポック以降の秒数)
         type: str,  # イベントの種類
         status: str,  # イベントの状態
-        worker_node: list,  # イベントを認識しているノード
+        worker_node: list[str],  # イベントを認識しているノード
         confirmed_on: int | None,  # イベントの通知を配信すべき時刻 (エポック以降の秒数)
         source: str | None = None,  # イベントの取得元、POST リクエストの処理時に使用する
     ):
@@ -26,6 +27,9 @@ class Event:
         self.worker_node = worker_node
         self.source = source
         self.confirmed_on = confirmed_on
+    
+    def __lt__(self, other):
+        return self.created_on < other.created_on
 
 
 events: dict[str, Event] = {}
@@ -93,28 +97,45 @@ async def identify_event(target: Event) -> Event | None:
 async def check_event(event_id: str) -> str:
     """
     入力されたイベントに対して、次のような処理を行います。
-    - 指定時間経過していたら合意処理を行う
-    - EventStatus の更新を行う
+    - 過半数のノードが合意しているかを確認する。
+    - 過半数のノードが合意していたら通知を行う。
+    - イベントの状態の更新を行う。
     - ...
     """
+
     e = events[event_id]
 
-    if e.status == "DELIVERED":  # 既に通知を配信済み
+    # タイムアウト、または古いイベントは削除
+    if abs(e.created_on - utime.time()) > 60 * constrants.EVENT_ACKNOWLEDGE_TIMEOUT:
+        events.pop(event_id)
+        if e.status == "WAIT_CONFIRM":
+            utils.print_log("[Event] Event " + event_id + " is timed out.")
+        else:
+            utils.print_log("[Event] Event " + event_id + " is deleted from cache.")
         return event_id
 
-    if e.status == "WAIT_CONFIRM":  # 通知の配信の決定待ち
-        # タイムアウト
-        diff = abs(e.created_on - utime.time())
-        if diff < 60 * constrants.EVENT_ACKNOWLEDGE_TIMEOUT:  # イベント作成から一定時間内
-            # 何もしない
+    # 既に通知を配信済み
+    if e.status == "DELIVERED":
+        return event_id
+
+    # 通知の配信の決定待ち
+    if e.status == "WAIT_CONFIRM":
+        # タイムアウトしたイベントは削除
+        if abs(e.created_on - utime.time()) > 60 * constrants.EVENT_ACKNOWLEDGE_TIMEOUT:
+            events.pop(event_id)
+            utils.print_log("[Event] Event " + event_id + " is timed out.")
             return event_id
 
-        utils.print_log("[Event] Event " + event_id + " became WAIT_DELIVERY state.")
-        e.status = "WAIT_DELIVERY"
+        # 過半数が合意した時点で通知を実行
+        ratio = len(e.worker_node) / len(utils.get_healthy_node())
+        if ratio >= 0.5:
+            utils.print_log("[Event] Event " + event_id + " became WAIT_DELIVERY state.")
+            e.status = "WAIT_DELIVERY"
 
-    if e.status == "WAIT_DELIVERY":  # 通知の配信待ち
+    # 通知の配信待ち
+    if e.status == "WAIT_DELIVERY":
         delivery_actor = notify.get_notify_workers(e)
-        if delivery_actor == config.ME:
+        if delivery_actor == utils.whoami():
             succeeded = notify.delivery(event_id)
             if succeeded:
                 e.status = "DELIVERED"
