@@ -1,42 +1,39 @@
 import network
 import config
-import time
+import utime
 
+import utils
 
 def prepare_wifi():
     """
     Wi-Fi 接続を準備します。
     リファレンス: https://datasheets.raspberrypi.com/picow/connecting-to-the-internet-with-pico-w.pdf
     """
-
-    # 国別コードを指定します。
-    # これは、国によって、Wi-Fi に使用できる周波数帯が異なるからです。
-    network.country(config.WIFI_COUNTRY_CODE)
+    print("[Info] Tries to connect to {}".format(config.WIFI_SSID))
 
     wlan = network.WLAN(network.STA_IF)
-    print("[Info] Trying to connect to {}".format(config.WIFI_SSID))
-    if not wlan.isconnected():
-        print("[Info] Trying to connect to {}".format(config.WIFI_SSID))
-        wlan.active(True)
-        wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
-        if config.WIFI_USE_DHCP is False:
-            wlan.ifconfig(
-                (
-                    config.WIFI_STATIC_IP,
-                    config.WIFI_SUBNET_MASK,
-                    config.WIFI_DEFAULT_GATEWAY,
-                    config.WIFI_DNS,
-                )
-            )
-        while not wlan.isconnected():
-            pass
+    wlan.active(True)
+    
+    wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
+    while not wlan.isconnected():
+        pass
 
-    for i in range(10):
+    if config.WIFI_USE_DHCP is False:
+        wlan.ifconfig(
+            (
+                config.WIFI_STATIC_IP,
+                config.WIFI_SUBNET_MASK,
+                config.WIFI_DEFAULT_GATEWAY,
+                config.WIFI_DNS,
+            )
+        )
+
+    for _ in range(10):
         status = wlan.status()
         if wlan.status() < 0 or wlan.status() >= network.STAT_GOT_IP:
             break
         print(f"Waiting for Wi-Fi connection... (Status: {status})")
-        time.sleep(1)
+        utime.sleep(1)
     else:
         raise RuntimeError("Wi-Fi connection timed out.")
 
@@ -48,5 +45,6 @@ def prepare_wifi():
         )
 
     print("Wi-Fi connection is ready! ifconfig:", wlan.ifconfig())
+    print(utils.stringify_mac(wlan.config('mac')))
 
     return wlan

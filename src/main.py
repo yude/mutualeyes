@@ -1,18 +1,20 @@
 import uasyncio as asyncio
-import wifi
 import machine
 import httpd
 import utime
-import node
 import clock
+
 import utils
+import event
+import node
+import wifi
 
 wlan = 0
-
 
 def main():
     loop = asyncio.get_event_loop()
     loop.create_task(node.check_node_parallel())
+    loop.create_task(event.check_event_parallel())
     loop.create_task(httpd.app.run())
     loop.run_forever()
 
@@ -42,7 +44,7 @@ if __name__ == "__main__":
         /_/|_|\__,_/_/|_|\__,_/____/_/ /_/_/ /___/
 
         Welcome to kakashiz running on {},
-        Decentralized monitoring system for
+        Decentralized alive-monitoring system for
         microcomputers.
 
         Machine information:

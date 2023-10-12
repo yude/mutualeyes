@@ -148,6 +148,6 @@ async def check_event_parallel():
     for e in uasyncio.as_completed([check_event(event_id) for event_id in events]):
         finished_event = await e
 
-        print("Scheduled tasks for event {} is finished.".format(finished_event))
+        # print("Scheduled tasks for event {} is finished.".format(finished_event))
 
     uasyncio.sleep(5)

@@ -3,6 +3,8 @@ import urequests
 import utime
 import copy
 import uuid
+import http_client.core as http_client
+import http_client.json_middleware as json_middleware
 
 import utils
 import config
@@ -34,48 +36,66 @@ async def check_node(target: Node) -> str | None:
 
     utils.print_log("[Monitor] Checking node {}...".format(target.name))
 
+    res_dict = None
+
     try:
-        res = urequests.get(target.endpoint, timeout=constrants.HTTP_GET_TIMEOUT)
-        res.close()
-        await uasyncio.sleep(2)
-    except OSError:
-        if target.status != "NODE_DOWN":
-            target.down_count = target.down_count + 1
+        while True:
+            req_dict = {
+                "url": target.endpoint,
+                "headers": {
+                    "Accept": "application/json"
+                }
+            }
 
-            if target.down_count > 2:
-                utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 3)".format(target.name, target.down_count))
-                utils.print_log("[Monitor] Node {} seems to be down.".format(target.name))
-                target.status = "NODE_DOWN"
-                await register_event(target, "NODE_DOWN")
+            r = await json_middleware.wrap(http_client.request)
+            res_dict = await uasyncio.wait_for_ms(r(req_dict), 2500)
+
+            try:
+                _ = res_dict['status']['code']
+            except KeyError:
+                pass
             else:
-                utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 3)".format(target.name, target.down_count))
+                break
+
+    except uasyncio.TimeoutError:
+        await down_node(target)
         return str(target.name)
 
-    if res.status_code != 200:
-        if target.status != "NODE_DOWN":
-            target.down_count = target.down_count + 1
-
-            if target.down_count > 2:
-                utils.print_log("[Monitor] Node {} is down.".format(target.name))
-                target.status = "NODE_DOWN"
-                await register_event(target, "NODE_DOWN")
-            else:
-                utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 2)".format(target.name, target.down_count))
-        return str(target.name)
+    if res_dict['status']['code'] != 200:
+        await down_node(target)
+        return str(target.name) 
 
     if target.status == "NODE_DOWN":
-        utils.print_log("[Monitor] Node {} is recovered.".format(target.name))
-        target.status = "NODE_UP"
-        target.down_count = 0
-        await register_event(target, "NODE_UP")
+        await recover_node(target)
         return str(target.name)
 
     if target.status is None or target.status == "NODE_UNKNOWN":
         target.status = "NODE_UP"
 
     utils.print_log("[Monitor] Node {} is up.".format(target.name))
+    target.down_count = 0
     return str(target.name)
 
+async def down_node(target: Node):
+    if target.status == "NODE_DOWN":
+        utils.print_log("[Monitor] Node {} is still down.".format(target.name))
+        return
+
+    if target.status != "NODE_DOWN":
+        target.down_count = target.down_count + 1
+        
+    if target.down_count > 2 and target.status != "NODE_DOWN":
+        utils.print_log("[Monitor] Node {} is down.".format(target.name))
+        target.status = "NODE_DOWN"
+        await register_event(target, "NODE_DOWN")
+    else:
+        utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 2)".format(target.name, target.down_count))
+
+async def recover_node(target: Node):
+    utils.print_log("[Monitor] Node {} is recovered.".format(target.name))
+    target.status = "NODE_UP"
+    target.down_count = 0
+    await register_event(target, "NODE_UP")
 
 async def check_node_parallel():
     """
