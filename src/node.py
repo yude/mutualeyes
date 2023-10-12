@@ -83,7 +83,7 @@ async def down_node(target: Node):
 
     if target.status != "NODE_DOWN":
         target.down_count = target.down_count + 1
-        
+
     if target.down_count > 2 and target.status != "NODE_DOWN":
         utils.print_log("[Monitor] Node {} is down.".format(target.name))
         target.status = "NODE_DOWN"
@@ -104,7 +104,7 @@ async def check_node_parallel():
     while True:
         tasks = [check_node(node) for node in config.NODES]
         await uasyncio.gather(*tasks)
-        await uasyncio.sleep(15)
+        await uasyncio.sleep(5)
 
 
 async def register_event(node: Node, event_type: str):
@@ -120,7 +120,7 @@ async def register_event(node: Node, event_type: str):
         status="WAIT_CONFIRM",
         source=utils.whoami(),
         worker_node=[utils.whoami()],
-        confirmed_on=utime.time(),
+        majority_ok_on=None,
     )
 
     # 重複していれば、そこで処理を終わる

@@ -17,7 +17,7 @@ class Event:
         type: str,  # イベントの種類
         status: str,  # イベントの状態
         worker_node: list[str],  # イベントを認識しているノード
-        confirmed_on: int | None,  # イベントの通知を配信すべき時刻 (エポック以降の秒数)
+        majority_ok_on: int | None,  # 過半数が合意した時刻
         source: str | None = None,  # イベントの取得元、POST リクエストの処理時に使用する
     ):
         self.origin = origin
@@ -26,8 +26,8 @@ class Event:
         self.status = status
         self.worker_node = worker_node
         self.source = source
-        self.confirmed_on = confirmed_on
-    
+        self.majority_ok_on = majority_ok_on
+
     def __lt__(self, other):
         return self.created_on < other.created_on
 
@@ -69,7 +69,7 @@ def query_to_event(json_str: str) -> Event | None:
         type=parsed_query.event_type,
         status="WAIT_CONFIRM",
         worker_node=[config.ME],
-        confirmed_on=None,
+        majority_ok_on=None,
     )
 
     return event
@@ -106,12 +106,9 @@ async def check_event(event_id: str) -> str:
     e = events[event_id]
 
     # タイムアウト、または古いイベントは削除
-    if abs(e.created_on - utime.time()) > 60 * constrants.EVENT_ACKNOWLEDGE_TIMEOUT:
+    if abs(e.created_on - utime.time()) > 60 * constrants.CLEAR_FROM_CACHE:
         events.pop(event_id)
-        if e.status == "WAIT_CONFIRM":
-            utils.print_log("[Event] Event " + event_id + " is timed out.")
-        else:
-            utils.print_log("[Event] Event " + event_id + " is deleted from cache.")
+        utils.print_log("[Event] Event " + event_id + " is deleted from cache.")
         return event_id
 
     # 既に通知を配信済み
@@ -120,17 +117,18 @@ async def check_event(event_id: str) -> str:
 
     # 通知の配信の決定待ち
     if e.status == "WAIT_CONFIRM":
-        # タイムアウトしたイベントは削除
-        if abs(e.created_on - utime.time()) > 60 * constrants.EVENT_ACKNOWLEDGE_TIMEOUT:
-            events.pop(event_id)
-            utils.print_log("[Event] Event " + event_id + " is timed out.")
+        if abs(e.created_on - utime.time()) > constrants.EVENT_ACKNOWLEDGE_TIMEOUT:
+            # 過半数が合意したかを確認
+            ratio = len(e.worker_node) / len(utils.get_healthy_node())
+            if ratio >= 0.5:
+                e.majority_ok_on = utime.time()
+                utils.print_log("[Event] Majority of nodes agreed w/ event " + event_id + ".")
+                e.status = "WAIT_DELIVERY"
+            else:
+                # タイムアウトしたイベントは削除
+                events.pop(event_id)
+                utils.print_log("[Event] Event " + event_id + " is timed out.")
             return event_id
-
-        # 過半数が合意した時点で通知を実行
-        ratio = len(e.worker_node) / len(utils.get_healthy_node())
-        if ratio >= 0.5:
-            utils.print_log("[Event] Event " + event_id + " became WAIT_DELIVERY state.")
-            e.status = "WAIT_DELIVERY"
 
     # 通知の配信待ち
     if e.status == "WAIT_DELIVERY":
@@ -145,9 +143,7 @@ async def check_event(event_id: str) -> str:
 
 
 async def check_event_parallel():
-    for e in uasyncio.as_completed([check_event(event_id) for event_id in events]):
-        finished_event = await e
-
-        # print("Scheduled tasks for event {} is finished.".format(finished_event))
-
-    uasyncio.sleep(5)
+    while True:
+        tasks = [check_event(event_id) for event_id in events]
+        await uasyncio.gather(*tasks)
+        await uasyncio.sleep(15)
