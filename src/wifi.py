@@ -9,7 +9,7 @@ def prepare_wifi():
     Wi-Fi 接続を準備します。
     リファレンス: https://datasheets.raspberrypi.com/picow/connecting-to-the-internet-with-pico-w.pdf
     """
-    print("[Info] Tries to connect to {}".format(config.WIFI_SSID))
+    print("[Info] Trying to connect to {}...".format(config.WIFI_SSID))
 
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
