@@ -44,50 +44,6 @@ async def get_notify_workers(e: event.Event) -> str | None:
 
     return e.worker_node[node_index]
 
-
-async def send_to_discord(event_id: str) -> bool:
-    e = event.events[event_id]
-
-    """
-    入力されたイベントの通知を、
-    Discord のテキストチャンネルに配信します。
-
-    返り値は配信の成否です。
-    """
-    q = {
-        "content": "New event notification",
-        "tts": False,
-        "embeds": [
-            {
-                "id": 671003818,
-                "description": f"発生日時: {utils.format_epoch(e.created_on)}",
-                "fields": [],
-                "title": f"{e.origin} is now {utils.format_event_type(e.type)}"
-            }
-        ],
-        "components": [],
-        "actions": {},
-        "username": "kakashiz"
-    }
-
-    res = None
-    try:
-        gc.collect()
-        res = urequests.post(
-            config.DISCORD_WEBHOOK_URL,
-            data=ujson.dumps(q).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-        )
-        res.close()
-    except Exception as e:
-        utils.print_log(f"[Warning] Failed to deliver event {event_id} to Discord. ({e})")
-        if res is not None and res.text is not None:
-            utils.print_log(res.text)
-        return False
-
-    return True
-
-
 async def send_to_ntfy(event_id: str) -> bool:
     e = event.events[event_id]
 
@@ -132,35 +88,6 @@ async def send_to_ntfy(event_id: str) -> bool:
             msg += ")"
 
         utils.print_log(msg)
-        return False
-
-    return True
-
-async def send_to_slack(event_id: str) -> bool:
-    e = event.events[event_id]
-
-    """
-    入力されたイベントの通知を、
-    Slack のテキストチャンネルに配信します。
-
-    返り値は配信の成否です。
-    """
-    
-    q = {
-        "text": f"{e.origin} is now {utils.format_event_type(e.type)} ({utils.format_epoch(e.created_on)})"
-    }
-    res = None
-    try:
-        res = urequests.post(
-            config.SLACK_WEBHOOK_URL,
-            data=ujson.dumps(q).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-        )
-        res.close()
-    except Exception as e:
-        utils.print_log(f"[Warning] Failed to deliver event {event_id} to Slack. ({e})")
-        if res is not None and res.text is not None:
-            utils.print_log(res.text)
         return False
 
     return True

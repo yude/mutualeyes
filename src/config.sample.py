@@ -34,5 +34,5 @@ WIFI_DNS = ''
 HTTP_PORT = 3000
 
 # 通知先
-## Discord
-DISCORD_WEBHOOK_URL = ""
+## ntfy.sh
+NTFYSH_URL = ""
