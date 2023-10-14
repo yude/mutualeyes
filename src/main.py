@@ -11,10 +11,15 @@ import wifi
 
 wlan = 0
 
+async def routine():
+    while True:
+        await node.check_node_parallel()
+        await event.check_event_parallel()
+        await asyncio.sleep(5)
+
 def main():
     loop = asyncio.get_event_loop()
-    loop.create_task(node.check_node_parallel())
-    loop.create_task(event.check_event_parallel())
+    loop.create_task(routine())
     loop.create_task(httpd.app.run())
     loop.run_forever()
 
