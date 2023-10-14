@@ -7,7 +7,6 @@ This branch is for RP2040 chip (Raspberry Pi Pico W).
 
 - Install the package listed below by using `mip`.
     - `copy`
-    - `uaiohttpclient`
 
 ## Development
 
