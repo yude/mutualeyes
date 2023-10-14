@@ -63,7 +63,7 @@ async def check_node(target: Node) -> str | None:
 
     if res_dict['status']['code'] != 200:
         await down_node(target)
-        return str(target.name) 
+        return str(target.name)
 
     if target.status == "NODE_DOWN":
         await recover_node(target)
@@ -101,10 +101,9 @@ async def check_node_parallel():
     """
     check_node() を uasyncio を使って非同期的に実行します。
     """
-    while True:
-        tasks = [check_node(node) for node in config.NODES]
-        await uasyncio.gather(*tasks)
-        await uasyncio.sleep(5)
+
+    tasks = [check_node(node) for node in config.NODES]
+    await uasyncio.gather(*tasks)
 
 
 async def register_event(node: Node, event_type: str):
@@ -112,21 +111,30 @@ async def register_event(node: Node, event_type: str):
     イベントをノード内のイベント一覧に登録します。
     """
 
-    # 新しくイベントを作成する
+    # 新しくイベントの構造を定義する
     new_event = event.Event(
         origin=copy.copy(node.name),
         created_on=utime.time(),
         type=event_type,
         status="WAIT_CONFIRM",
-        source=utils.whoami(),
-        worker_node=[utils.whoami()],
+        worker_node=[],
         majority_ok_on=None,
     )
+    new_event.worker_node.append(utils.whoami())
 
     # 重複していれば、そこで処理を終わる
-    identified = event.identify_event(new_event)
+    identified = await event.identify_event(new_event)
     if identified is not None:
         return str(node.name)
 
     # 重複していなければ、登録する
-    event.events[str(uuid.uuid1())] = new_event
+    new_event_uuid = uuid.uuid4()
+    event.events[str(new_event_uuid)] = new_event
+    utils.print_log("[Event] New event registered: " + str(new_event_uuid))
+
+    # 他のノードにこのイベントを共有する
+    await event.share_event_parallel(
+        "/event",
+        event.events[str(new_event_uuid)],
+        str(new_event_uuid)
+    )

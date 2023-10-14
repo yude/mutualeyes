@@ -7,7 +7,9 @@ import utils
 import constrants
 import config
 import notify
-
+import node
+import http_client.core as http_client
+import http_client.json_middleware as json_middleware
 
 class Event:
     def __init__(
@@ -18,59 +20,59 @@ class Event:
         status: str,  # イベントの状態
         worker_node: list[str],  # イベントを認識しているノード
         majority_ok_on: int | None,  # 過半数が合意した時刻
-        source: str | None = None,  # イベントの取得元、POST リクエストの処理時に使用する
     ):
         self.origin = origin
         self.created_on = created_on
         self.type = type
         self.status = status
         self.worker_node = worker_node
-        self.source = source
         self.majority_ok_on = majority_ok_on
 
     def __lt__(self, other):
         return self.created_on < other.created_on
 
+class EventQuery:
+    def __init__(
+        self,
+        event: dict,
+        sent_from: str,
+    ):
+        self.event = event
+        self.sent_from = sent_from
+
 
 events: dict[str, Event] = {}
 
 
-def event_to_query(event: Event) -> str:
-    """
-    コード内で使用されているイベントのオブジェクトを、
-    POST リクエスト等で使用できる JSON に変換します。
-    """
-
-    # このノードを、入力されたイベントが通過したということを記録します。
-    e = copy.copy(event)
-    e.source = config.ME
-    e.worker_node.append(config.ME)
-    worker_node_dict = set(copy.copy(e.worker_node))
-    e.worker_node = list(worker_node_dict)
-
-    return json.dumps(e.__dict__)  # type: ignore
-
-
 def query_to_event(json_str: str) -> Event | None:
     """
-    POST リクエスト等で受け取った JSON をパースして、
+    POST リクエストで受け取った JSON をパースして、
     コード内で使用されているイベント オブジェクトに変換します。
     """
-    parsed_query = ""
+    q = ""
 
     try:
-        parsed_query = json.loads(json_str)
+        q = json.loads(json_str)
     except:  # noqa: E722
         return None
 
+    utils.print_log(f"[Query2Event] Loaded following JSON: {json_str}")
+
     event = Event(
-        origin=parsed_query.origin,
-        created_on=int(parsed_query.created_on),
-        type=parsed_query.event_type,
+        origin=q["event"]["origin"],
+        created_on=int(q["event"]["created_on"]),
+        type=q["event"]["type"],
         status="WAIT_CONFIRM",
-        worker_node=[config.ME],
-        majority_ok_on=None,
+        worker_node=[],
+        majority_ok_on=None
     )
+
+    event.worker_node.append(q["sent_from"])
+    event.worker_node.append(utils.whoami())
+    event.worker_node = list(set(event.worker_node))
+
+    utils.print_log("[Query2Event] Query has been converted to event: ")
+    print(event.__dict__)
 
     return event
 
@@ -82,8 +84,8 @@ async def identify_event(target: Event) -> Event | None:
     """
 
     for e in events:
-        # イベントの発生元 (ターゲット) とイベントの種類が等しい
-        if events[e].origin == target.origin and events[e].type == target.type:
+        # イベントの発生元 (ターゲット) が等しい
+        if events[e].origin == target.origin:
             # イベントの発生日時の差が一定の値に収まっているかを確認する
             if (
                 abs(events[e].created_on - target.created_on)
@@ -132,18 +134,62 @@ async def check_event(event_id: str) -> str:
 
     # 通知の配信待ち
     if e.status == "WAIT_DELIVERY":
-        delivery_actor = notify.get_notify_workers(e)
+        delivery_actor = await notify.get_notify_workers(e)
         if delivery_actor == utils.whoami():
-            succeeded = notify.delivery(event_id)
+            succeeded = await notify.delivery(event_id)
             if succeeded:
                 e.status = "DELIVERED"
-                utils.print_log("[Event] Event " + event_id + " is done.")
+                utils.print_log("[Event] Event " + event_id + " is delivered.")
 
     return event_id
 
 
 async def check_event_parallel():
-    while True:
-        tasks = [check_event(event_id) for event_id in events]
-        await uasyncio.gather(*tasks)
-        await uasyncio.sleep(15)
+    print("Current events: " + str(events.keys()))
+    tasks = [check_event(event_id) for event_id in events.keys()]
+    await uasyncio.gather(*tasks)
+
+async def share_event(path: str, event: Event, event_id: str, n: node.Node):
+    if n.name == utils.whoami():
+        return
+
+    res_dict = None
+    q = EventQuery(
+        event=event.__dict__,
+        sent_from=utils.whoami()
+    ).__dict__
+    print(json.dumps(q))
+
+    try:
+        while True:
+            req_dict = {
+                "url": n.endpoint + path,
+                "headers": {
+                    "Accept": "application/json"
+                },
+                "method": "POST",
+                "body": q
+            }
+
+            r = await json_middleware.wrap(http_client.request)
+            res_dict = await uasyncio.wait_for_ms(r(req_dict), 1500)
+
+            try:
+                _ = res_dict['status']['code']
+            except KeyError:
+                pass
+            else:
+                break
+
+    except Exception:
+        utils.print_log("[Event] Failed to share event " + event_id + " to node " + n.name + ".")
+        return
+
+    if res_dict['status']['code'] != 200:
+        utils.print_log("[Event] Failed to share event " + event_id + " to node " + n.name + ".")
+        return
+
+async def share_event_parallel(path: str, event: Event, event_id: str):
+    tasks = [share_event(path, event, event_id, n) for n in config.NODES]
+    await uasyncio.gather(*tasks)
+    utils.print_log("[Event] Shared event " + event_id + " to all nodes.")
