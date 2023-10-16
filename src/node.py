@@ -48,21 +48,34 @@ async def check_node(target: Node) -> str | None:
                 }
             }
 
+            if config.LOG_LEVEL == "ALL":
+                utils.print_log("[Monitor] Request to " + target.name + " for preodical check is following:")
+                print(req_dict)
+            
             r = await json_middleware.wrap(http_client.request)
-            res_dict = await uasyncio.wait_for_ms(r(req_dict), 2500)
+            res_dict = await uasyncio.wait_for_ms(r(req_dict), 4000)
 
             try:
                 _ = res_dict['status']['code']
             except KeyError:
                 pass
             else:
+                if config.LOG_LEVEL == "ALL":
+                    utils.print_log("[Monitor] Response from " + target.name + " for preodical check is following:")
+                    print(res_dict)
                 break
 
     except uasyncio.TimeoutError:
+        if config.LOG_LEVEL == "ALL":
+            utils.print_log("[Monitor] Request to " + target.name + " is timed out.")
+
         await down_node(target)
         return str(target.name)
 
     if res_dict['status']['code'] != 200:
+        if config.LOG_LEVEL == "ALL":
+            utils.print_log("[Monitor] " + target.name + " is returning non-200 code.")
+            
         await down_node(target)
         return str(target.name)
 
