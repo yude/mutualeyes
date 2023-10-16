@@ -126,7 +126,11 @@ async def check_event(event_id: str) -> str:
     if e.status == "WAIT_CONFIRM":
         if abs(e.created_on - utime.time()) > constrants.EVENT_ACKNOWLEDGE_TIMEOUT:
             # 過半数が合意したかを確認
-            ratio = len(e.worker_node) / len(utils.get_healthy_node())
+            try:
+                ratio = len(e.worker_node) / len(utils.get_healthy_node())
+            except ZeroDivisionError:
+                # 自分しか稼働しているノードが存在しないとき、強制的に通知待機状態にする
+                ratio = 1.0
             if ratio >= 0.5:
                 e.majority_ok_on = utime.time()
                 utils.print_log("[Event] Majority of nodes agreed w/ event " + event_id + ".")
