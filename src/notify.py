@@ -61,7 +61,10 @@ async def send_to_ntfy(event_id: str) -> bool:
                 },
                 "body": f"{e.origin} is now {utils.format_event_type(e.type)} ({utils.format_epoch(e.created_on)})"
             }
-            print(req_dict)
+
+            if config.LOG_LEVEL == "ALL":
+                utils.print_log("Sending notification for event " + event_id + " to ntfy.sh. Request body:")
+                print(req_dict)
 
             r = await json_middleware.wrap(http_client.request)
             res_dict = await uasyncio.wait_for_ms(r(req_dict), 1500)
