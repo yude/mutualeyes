@@ -26,7 +26,6 @@ async def get_notify_workers(e: event.Event) -> str | None:
     e.worker_node = list(set(e.worker_node))
     # ASCII 順にソート
     e.worker_node = [i for _, i in sorted(zip([sum(map(ord, x)) for x in e.worker_node], e.worker_node), reverse=False)]
-    print(e.worker_node)
 
     if e.majority_ok_on is None:
         return None
@@ -39,8 +38,6 @@ async def get_notify_workers(e: event.Event) -> str | None:
     node_index = math.floor(diff / constrants.EVENT_DELIVERY_TIMEOUT)
     if node_index > len(e.worker_node) - 1:
         node_index = len(e.worker_node) - 1
-    
-    print(f"index: {node_index}, node: {e.worker_node[node_index]}")
 
     return e.worker_node[node_index]
 
@@ -87,7 +84,8 @@ async def send_to_ntfy(event_id: str) -> bool:
         except KeyError:
             msg += ")"
 
-        utils.print_log(msg)
+        if config.LOG_LEVEL == "ALL":
+            utils.print_log(msg)
         return False
 
     return True

@@ -34,7 +34,8 @@ async def check_node(target: Node) -> str | None:
     if target.name == utils.whoami():
         return None
 
-    utils.print_log("[Monitor] Checking node {}...".format(target.name))
+    if config.LOG_LEVEL == "ALL":
+        utils.print_log("[Monitor] Checking node {}...".format(target.name))
 
     res_dict = None
 
@@ -72,27 +73,30 @@ async def check_node(target: Node) -> str | None:
     if target.status is None or target.status == "NODE_UNKNOWN":
         target.status = "NODE_UP"
 
-    utils.print_log("[Monitor] Node {} is up.".format(target.name))
+    if config.LOG_LEVEL == "ALL":
+        utils.print_log("[Monitor] Node {} is up.".format(target.name))
+
     target.down_count = 0
     return str(target.name)
 
 async def down_node(target: Node):
     if target.status == "NODE_DOWN":
-        utils.print_log("[Monitor] Node {} is still down.".format(target.name))
+        if config.LOG_LEVEL == "ALL":
+            utils.print_log("[Monitor] Node {} is still down.".format(target.name))
         return
 
     if target.status != "NODE_DOWN":
         target.down_count = target.down_count + 1
 
     if target.down_count > 2 and target.status != "NODE_DOWN":
-        utils.print_log("[Monitor] Node {} is down.".format(target.name))
+        utils.print_log("[Monitor] Node {} is now down.".format(target.name))
         target.status = "NODE_DOWN"
         await register_event(target, "NODE_DOWN")
     else:
         utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 2)".format(target.name, target.down_count))
 
 async def recover_node(target: Node):
-    utils.print_log("[Monitor] Node {} is recovered.".format(target.name))
+    utils.print_log("[Monitor] Node {} is now up.".format(target.name))
     target.status = "NODE_UP"
     target.down_count = 0
     await register_event(target, "NODE_UP")

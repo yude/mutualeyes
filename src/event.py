@@ -56,7 +56,8 @@ def query_to_event(json_str: str) -> Event | None:
     except:  # noqa: E722
         return None
 
-    utils.print_log(f"[Query2Event] Loaded following JSON: {json_str}")
+    if config.LOG_LEVEL == "ALL":
+        utils.print_log(f"[Query2Event] Loaded following JSON: {json_str}")
 
     event = Event(
         origin=q["event"]["origin"],
@@ -71,8 +72,9 @@ def query_to_event(json_str: str) -> Event | None:
     event.worker_node.append(utils.whoami())
     event.worker_node = list(set(event.worker_node))
 
-    utils.print_log("[Query2Event] Query has been converted to event: ")
-    print(event.__dict__)
+    if config.LOG_LEVEL == "ALL":
+        utils.print_log("[Query2Event] Query has been converted to event: ")
+        print(event.__dict__)
 
     return event
 
@@ -110,7 +112,10 @@ async def check_event(event_id: str) -> str:
     # タイムアウト、または古いイベントは削除
     if abs(e.created_on - utime.time()) > 60 * constrants.CLEAR_FROM_CACHE:
         events.pop(event_id)
-        utils.print_log("[Event] Event " + event_id + " is deleted from cache.")
+
+        if config.LOG_LEVEL == "ALL":
+            utils.print_log("[Event] Event " + event_id + " is deleted from cache.")
+
         return event_id
 
     # 既に通知を配信済み
@@ -145,7 +150,8 @@ async def check_event(event_id: str) -> str:
 
 
 async def check_event_parallel():
-    print("Current events: " + str(events.keys()))
+    if config.LOG_LEVEL == "ALL":
+        print("Current events: " + str(events.keys()))
     tasks = [check_event(event_id) for event_id in events.keys()]
     await uasyncio.gather(*tasks)
 
@@ -158,7 +164,10 @@ async def share_event(path: str, event: Event, event_id: str, n: node.Node):
         event=event.__dict__,
         sent_from=utils.whoami()
     ).__dict__
-    print(json.dumps(q))
+
+    if config.LOG_LEVEL == "ALL":
+        utils.print_log("Sharing event " + event_id + " to other nodes. Request body is following:")
+        print(json.dumps(q))
 
     try:
         while True:
@@ -182,11 +191,13 @@ async def share_event(path: str, event: Event, event_id: str, n: node.Node):
                 break
 
     except Exception:
-        utils.print_log("[Event] Failed to share event " + event_id + " to node " + n.name + ".")
+        if config.LOG_LEVEL == "ALL":
+            utils.print_log("[Event] Failed to share event " + event_id + " to node " + n.name + ".")
         return
 
     if res_dict['status']['code'] != 200:
-        utils.print_log("[Event] Failed to share event " + event_id + " to node " + n.name + ".")
+        if config.LOG_LEVEL == "ALL":
+            utils.print_log("[Event] Failed to share event " + event_id + " to node " + n.name + ".")
         return
 
 async def share_event_parallel(path: str, event: Event, event_id: str):

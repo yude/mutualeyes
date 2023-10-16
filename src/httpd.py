@@ -28,7 +28,10 @@ async def _event(req):
         raise HttpError(req, 400, '{"result": "BAD_REQUEST"}')
 
     req_body = (await req.read(content_length)).decode()
-    print("Request body: " + req_body)
+
+    if config.LOG_LEVEL == "ALL":
+        utils.print_log("New request received for event sharing.")
+        print("Request body: " + req_body)
 
     req_json = None
     if req_body is not None:
@@ -71,7 +74,9 @@ async def _notify_done(req):
         raise HttpError(req, 400, '{"result": "BAD_REQUEST"}')
 
     req_body = (await req.read(content_length)).decode()
-    print("Request body: " + req_body)
+    if config.LOG_LEVEL == "ALL":
+        utils.print_log("New request received for syncing notification status.")
+        print("Request body: " + req_body)
 
     req_json = None
     if req_body is not None:
