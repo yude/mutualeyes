@@ -8,6 +8,7 @@ import utils
 import event
 import node
 import wifi
+import config
 
 wlan = 0
 
@@ -34,9 +35,6 @@ if __name__ == "__main__":
 
     # 時刻を設定
     clock.set_clock()
-    # 前提ライブラリをインストール
-    utils.install_dependencies()
-
     rtc = machine.RTC()
 
     ## 起動メッセージ

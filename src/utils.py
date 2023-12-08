@@ -16,11 +16,6 @@ def enum(**enums: int):
     return type("Enum", (), enums)
 
 
-def install_dependencies() -> None:
-    # mip.install("copy")
-    return
-
-
 def event_type_to_color(event_type: str) -> str:
     """
     イベントの種類に合う色を 10 進数で返します。
@@ -49,7 +44,10 @@ def format_epoch(epoch: int) -> str:
     )
 
 def print_log(msg: str):
-    print(utils.format_epoch(utime.time()) + ": " + msg)
+    res = f"[{utime.ticks_ms()}] "
+    res += utils.format_epoch(utime.time())
+    res += ": " + msg
+    print(res)
 
 def format_event_type(event_type: str) -> str:
     """
