@@ -56,9 +56,6 @@ def query_to_event(json_str: str) -> Event | None:
     except:  # noqa: E722
         return None
 
-    if config.LOG_LEVEL == "ALL":
-        utils.print_log(f"[Query2Event] Loaded following JSON: {json_str}")
-
     event = Event(
         origin=q["event"]["origin"],
         created_on=int(q["event"]["created_on"]),
@@ -71,10 +68,6 @@ def query_to_event(json_str: str) -> Event | None:
     event.worker_node.append(q["sent_from"])
     event.worker_node.append(utils.whoami())
     event.worker_node = list(set(event.worker_node))
-
-    if config.LOG_LEVEL == "ALL":
-        utils.print_log("[Query2Event] Query has been converted to event: ")
-        print(event.__dict__)
 
     return event
 
@@ -93,9 +86,10 @@ async def identify_event(target: Event) -> Event | None:
                 abs(events[e].created_on - target.created_on)
                 < constrants.SAME_EVENT_TIME_LAG * 60
             ):
-                if config.LOG_LEVEL == "ALL":
-                    utils.print_log("Identified known event: \n" + str(target.__dict__))
-                return events[e]
+                if events[e].type == target.type:
+                    if config.LOG_LEVEL == "ALL":
+                        utils.print_log("Identified known event: \n" + str(target.__dict__))
+                    return events[e]
 
     if config.LOG_LEVEL == "ALL":
         utils.print_log("Identified new event: \n" + str(target.__dict__))
