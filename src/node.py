@@ -49,7 +49,7 @@ async def check_node(target: Node) -> str | None:
             }
 
             if config.LOG_LEVEL == "ALL":
-                utils.print_log("[Monitor] Request to " + target.name + " for preodical check is following:")
+                utils.print_log("[Monitor] Request to " + target.name + " for periodical checking is following:")
                 print(req_dict)
             
             r = await json_middleware.wrap(http_client.request)
@@ -61,7 +61,7 @@ async def check_node(target: Node) -> str | None:
                 pass
             else:
                 if config.LOG_LEVEL == "ALL":
-                    utils.print_log("[Monitor] Response from " + target.name + " for preodical check is following:")
+                    utils.print_log("[Monitor] Response from " + target.name + " for periodical checking is following:")
                     print(res_dict)
                 break
 
@@ -104,6 +104,7 @@ async def down_node(target: Node):
     if target.down_count > 2 and target.status != "NODE_DOWN":
         utils.print_log("[Monitor] Node {} is now down.".format(target.name))
         target.status = "NODE_DOWN"
+
         await register_event(target, "NODE_DOWN")
     else:
         utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 2)".format(target.name, target.down_count))
@@ -138,6 +139,9 @@ async def register_event(node: Node, event_type: str):
         majority_ok_on=None,
     )
     new_event.worker_node.append(utils.whoami())
+
+    if config.LOG_LEVEL == "ALL":
+        utils.print_log("Trying to register event, the details are following:\n" + str(new_event.__dict__))
 
     # 重複していれば、そこで処理を終わる
     identified = await event.identify_event(new_event)
