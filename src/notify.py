@@ -59,7 +59,7 @@ async def send_to_ntfy(event_id: str) -> bool:
                 "header": {
                     "Content-Type": "text/markdown",
                 },
-                "body": f"{e.origin} is now {utils.format_event_type(e.type)} ({utils.format_epoch(e.created_on)})"
+                "body": f"{e.origin} is now {utils.format_event_type(e.type)} ({utils.format_epoch(e.created_on)}, Sent from {utils.whoami()})"
             }
 
             if config.LOG_LEVEL == "ALL":
