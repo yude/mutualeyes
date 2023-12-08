@@ -155,3 +155,4 @@ async def register_event(node: Node, event_type: str):
         event.events[str(new_event_uuid)],
         str(new_event_uuid)
     )
+    utils.print_log("[Event] Shared event " + str(new_event_uuid) + " to all nodes.")

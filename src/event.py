@@ -207,4 +207,3 @@ async def share_event(path: str, event: Event, event_id: str, n: node.Node):
 async def share_event_parallel(path: str, event: Event, event_id: str):
     tasks = [share_event(path, event, event_id, n) for n in config.NODES]
     await uasyncio.gather(*tasks)
-    utils.print_log("[Event] Shared event " + event_id + " to all nodes.")

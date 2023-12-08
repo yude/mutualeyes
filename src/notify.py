@@ -112,5 +112,7 @@ async def delivery(event_id: str) -> bool:
             event.events[event_id],
             event_id
         )
+    
+    utils.print_log("[Event] Shared `DELIVERED` status of " + event_id + " to all nodes.")
 
     return succeeded
