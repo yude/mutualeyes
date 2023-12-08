@@ -93,7 +93,10 @@ async def identify_event(target: Event) -> Event | None:
                 abs(events[e].created_on - target.created_on)
                 < constrants.SAME_EVENT_TIME_LAG * 60
             ):
+                utils.print_log("Identified known event: \n" + str(target.__dict__))
                 return events[e]
+
+    utils.print_log("Identified new event: \n" + str(target.__dict__))
 
     return None
 
