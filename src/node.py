@@ -22,6 +22,8 @@ class Node:
     def __lt__(self, other):
         return self.name < other.name
 
+    def __str__(self):
+        return f"name: {self.name}, status: {self.status}, down_count: {self.down_count}"
 
 async def check_node(target: Node) -> str | None:
     """
@@ -122,6 +124,12 @@ async def check_node_parallel():
 
     tasks = [check_node(node) for node in config.NODES]
     await uasyncio.gather(*tasks)
+
+    if config.LOG_LEVEL == "ALL":
+        print("Current node status:")
+        for node in config.NODES:
+            if utils.whoami() != node.name:
+                print(node)
 
 
 async def register_event(node: Node, event_type: str):

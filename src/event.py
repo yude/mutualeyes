@@ -31,6 +31,9 @@ class Event:
     def __lt__(self, other):
         return self.created_on < other.created_on
 
+    def __str__(self):
+        return f'origin: {self.origin}, created_on: {self.created_on}, type: {self.type}, status: {self.status}, worker_node: {self.worker_node}, majority_ok_on: {self.majority_ok_on}'
+
 class EventQuery:
     def __init__(
         self,
@@ -142,7 +145,7 @@ async def check_event(event_id: str) -> str:
 
     # 通知の配信待ち
     if e.status == "WAIT_DELIVERY":
-        delivery_actor = await notify.get_notify_workers(e)
+        delivery_actor = await notify.get_notify_worker(e)
         if delivery_actor == utils.whoami():
             succeeded = await notify.delivery(event_id)
             if succeeded:
@@ -154,7 +157,9 @@ async def check_event(event_id: str) -> str:
 
 async def check_event_parallel():
     if config.LOG_LEVEL == "ALL":
-        print("Current events: " + str(events.keys()))
+        print("Current events:")
+        for k, v in events.items():
+            print(f"[{k}] {v}")
     tasks = [check_event(event_id) for event_id in events.keys()]
     await uasyncio.gather(*tasks)
 
