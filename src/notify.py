@@ -13,7 +13,7 @@ import ujson
 import gc
 
 
-async def get_notify_workers(e: event.Event) -> str | None:
+async def get_notify_worker(e: event.Event) -> str | None:
     """
     入力されたイベントの通知を配信すべきノードを返します。
     これは、通知すべき時刻からの経過時間によって変化することがあります。
@@ -42,14 +42,16 @@ async def get_notify_workers(e: event.Event) -> str | None:
     return e.worker_node[node_index]
 
 async def send_to_ntfy(event_id: str) -> bool:
-    e = event.events[event_id]
-
     """
     入力されたイベントの通知を、
     ntfy.sh に送信します。
 
     返り値は配信の成否です。
     """
+
+    e = event.events[event_id]
+    if e.status == "DELIVERED":
+        return True
 
     try:
         while True:

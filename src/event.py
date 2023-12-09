@@ -163,19 +163,11 @@ async def check_event_parallel():
     tasks = [check_event(event_id) for event_id in events.keys()]
     await uasyncio.gather(*tasks)
 
-async def share_event(path: str, event: Event, event_id: str, n: node.Node):
+async def share_event(path: str, event: Event, event_id: str, query: EventQuery, n: node.Node):
     if n.name == utils.whoami():
         return
 
     res_dict = None
-    q = EventQuery(
-        event=event.__dict__,
-        sent_from=utils.whoami()
-    ).__dict__
-
-    if config.LOG_LEVEL == "ALL":
-        utils.print_log("Sharing event " + event_id + " to other nodes. Request body is following:")
-        print(json.dumps(q))
 
     try:
         while True:
@@ -185,7 +177,7 @@ async def share_event(path: str, event: Event, event_id: str, n: node.Node):
                     "Accept": "application/json"
                 },
                 "method": "POST",
-                "body": q
+                "body": query.__dict__
             }
 
             r = await json_middleware.wrap(http_client.request)
@@ -209,5 +201,14 @@ async def share_event(path: str, event: Event, event_id: str, n: node.Node):
         return
 
 async def share_event_parallel(path: str, event: Event, event_id: str):
-    tasks = [share_event(path, event, event_id, n) for n in config.NODES]
+    q = EventQuery(
+        event=event.__dict__,
+        sent_from=utils.whoami()
+    )
+
+    if config.LOG_LEVEL == "ALL":
+        utils.print_log("Sharing event " + event_id + " to other nodes. Request body is following:")
+        print(json.dumps(q.__dict__))
+
+    tasks = [share_event(path, event, event_id, q, n) for n in config.NODES]
     await uasyncio.gather(*tasks)
