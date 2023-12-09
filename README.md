@@ -1,19 +1,17 @@
 # kakashiz
 
 kakashiz is easy-to-ported decentralized monitoring system mainly developed for microcomputers.\
-This branch is for RP2040 chip (Raspberry Pi Pico W).
-
-## Depencencies
-
-- Install the package listed below by using `mip`.
-    - `copy`
+This branch contains implementation in MicroPython.
 
 ## Development
 
-This project uses [Pipenv](https://pipenv-ja.readthedocs.io/ja/translate-ja/) to manage packages, etc.
+- Install packages listed below by using `mip`. This is required for each microcomputers.
+    - `copy`
+    - `logging`
+    - `ntptime`
 
-* Install dependencies: `pipenv install`
-* Attach to shell: `pipenv shell`
+- Run this software.
+    - `cd src && mpremote [device] mount . run main.py`
 
 ## License
 
