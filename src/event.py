@@ -12,6 +12,9 @@ import http_client.core as http_client
 import http_client.json_middleware as json_middleware
 
 class Event:
+    """
+    ノード内部で扱われるイベントの実体
+    """
     def __init__(
         self,
         origin: str,  # イベントの発生元
@@ -35,6 +38,9 @@ class Event:
         return f'origin: {self.origin}, created_on: {self.created_on}, type: {self.type}, status: {self.status}, worker_node: {self.worker_node}, majority_ok_on: {self.majority_ok_on}'
 
 class EventQuery:
+    """
+    他のノードへ送信するイベントの実体
+    """
     def __init__(
         self,
         event: dict,
@@ -106,9 +112,8 @@ async def check_event(event_id: str) -> str:
     """
     入力されたイベントに対して、次のような処理を行います。
     - 過半数のノードが合意しているかを確認する。
-    - 過半数のノードが合意していたら通知を行う。
+    - 過半数のノードが合意していたら発報を行う。
     - イベントの状態の更新を行う。
-    - ...
     """
 
     e = events[event_id]
@@ -158,6 +163,9 @@ async def check_event(event_id: str) -> str:
 
 
 async def check_event_parallel():
+    """
+    並列的にイベントを処理します。
+    """
     if config.LOG_LEVEL == "ALL":
         print("Current events:")
         for k, v in events.items():
@@ -166,6 +174,10 @@ async def check_event_parallel():
     await uasyncio.gather(*tasks)
 
 async def share_event(path: str, event: Event, event_id: str, query: EventQuery, n: node.Node):
+    """
+    与えられたイベントの情報を、他のノードで共有します。
+    """
+
     if n.name == utils.whoami():
         return
 
@@ -228,6 +240,11 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
         return
 
 async def share_event_parallel(path: str, event: Event, event_id: str):
+    """
+    他のノードにイベントを共有します。
+    これは並列処理のために用意されています。
+    """
+
     q = EventQuery(
         event=event.__dict__,
         sent_from=utils.whoami(),

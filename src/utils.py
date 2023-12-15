@@ -73,13 +73,17 @@ def stringify_mac(mac_string):
     return res
 
 def whoami() -> str:
-    # Static detection
+    """
+    自ノードが、登録されているノードのうちどれであるかを自動的に特定しようとします。
+    """
+
+    # config.ME が指定されていればそれを優先する
     if config.ME != "":
         return config.ME
     
     wlan = network.WLAN(network.STA_IF)
 
-    # Automatically detect by local IP address
+    # DHCP などで取得した IP アドレスから自動的に判別を試行する
     for node in config.NODES:
         sub_1 = "//"
         sub_2 = ":"
@@ -96,9 +100,14 @@ def whoami() -> str:
             config.ME = node.name
             return node.name
     
+    # 特定失敗
     raise RuntimeError("Cannot detect whoami")
 
 def get_healthy_node():
+    """
+    自ノードから見て正常に動作していると認識しているノードを返します。
+    降順にソートしたものを返します。
+    """
     healthy: list[str] = []
     for node in config.NODES:
         if node.status == "NODE_UP":
@@ -109,6 +118,9 @@ def get_healthy_node():
     return healthy
 
 class AuthHash:
+    """
+    ノード認証用のハッシュ値
+    """
     def __init__(self, hash: str, created_on: int = utime.time()):
         self.hash = hash
         self.created_on = created_on
@@ -116,16 +128,20 @@ class AuthHash:
 hashes: list[AuthHash] = []
 
 async def get_auth_hash(seed: str)->str:
+    """
+    与えられたシード値と設定されているトークンからハッシュ値を生成します。
+    """
     res = hashlib.sha256()
     token_plus_hash = bytes(config.TOKEN + seed, 'utf-8')
     res.update(token_plus_hash)
 
     return binascii.hexlify(res.digest()).decode('utf-8')
 
-# use_auth_hash
-## 入力されたハッシュ値が認証用のものとして正しいか確認します。
-## 返り値: 正しければ True, 間違っていれば False を返します。
 async def use_auth_hash(input_hash: str)->bool:
+    """
+    入力されたハッシュ値が認証用のものとして正しいか確認します。
+    正しければ True, 間違っていれば False を返します。
+    """
     for hash in hashes:
         if hash.hash == input_hash:
             return True

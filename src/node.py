@@ -13,6 +13,14 @@ import constrants
 
 
 class Node:
+    """
+    自ノード内部で扱われるそれぞれのノードの情報
+    - name: 名前
+    - endpoint: API エンドポイント
+    - status: ノードの状態 (UP, DOWN)
+    - down_count: ノードがダウンしたと確定するまでの猶予回数を記録
+    """
+
     def __init__(self, name: str, endpoint: str, status: str | None = None, down_count: int = 0):
         self.name = name
         self.endpoint = endpoint
