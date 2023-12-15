@@ -171,7 +171,7 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
 
     res_dict = None
 
-    # Retrieve seed for secured connection.
+    # 認証のためのシード部分を相手ノードから取得する
     try:
         req_dict = {
                 "url": n.endpoint + "/get-seed",
@@ -189,11 +189,13 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
             utils.print_log("[Event] Failed to secure connection w/ node  " + n.name + ".")
         return
     
+    # 取得したシード値は bytes 型で b'シード'\r\n のようになっているため、シード値のみ取り出す
+    # 取り出したものを utils.get_auth_hash() に入力してハッシュ化する
     query.hash = await utils.get_auth_hash(
         res_dict['body'].decode('utf-8').replace('\n', '').replace('\r', '')
     )
 
-    # Send the event information to other node.
+    # 相手のノードにイベントの情報を送信する
     try:
         while True:
             req_dict = {

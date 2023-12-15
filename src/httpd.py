@@ -15,14 +15,17 @@ import http_client.json_middleware as json_middleware
 
 app = Nanoweb(config.HTTP_PORT)
 
-
+# /
+## ノードのキープアライブ用
 @app.route("/")
 async def _index(req):
     await return_ok(req, "200 OK!")
 
-
+# /event
+## イベントを他のノードから受け取る
 @app.route("/event")
 async def _event(req):
+    # HTTP ヘッダーの確認
     try:
         content_length = int(req.headers["Content-Length"])
         content_type = req.headers["Content-Type"]
@@ -32,6 +35,7 @@ async def _event(req):
     if content_type != "application/json":
         raise HttpError(req, 400, '{"result": "BAD_REQUEST"}')
 
+    # Body を読んで JSON として正しいか確認する
     req_body = (await req.read(content_length)).decode()
 
     if config.LOG_LEVEL == "ALL":
@@ -49,9 +53,20 @@ async def _event(req):
 
     if req_json is not None:
         query = event.query_to_event(req_body)
-        if query is not None:  # クエリの解釈に成功した場合
+        # クエリの解釈に成功した場合
+        if query is not None:
+            # ノードを認証する
+            auth_hash = req_json["hash"]
+            auth_hash_ok = await utils.use_auth_hash(auth_hash)
+            if not auth_hash_ok:
+                if config.LOG_LEVEL == "ALL":
+                    utils.print_log("Received an invalid request regarding authentication.")
+                return
+
+            # 同じイベントをすでに認識していないか確認する
             identified = await event.identify_event(query)
 
+            # 未知のイベントだった場合、新規イベントとして登録する
             if identified is None:
                 event.events[str(uuid.uuid4())] = query
                 await return_json_ok(req, '{"result": "SUCCESS_WITH_REGISTER"}')
@@ -60,6 +75,7 @@ async def _event(req):
                 await return_json_ok(req, '{"result": "SUCCESS_WITH_ACKNOWLEDGE"}')
 
             return
+        # クエリの解釈に失敗した場合
         else:
             await return_json_ok(req, '{"result": "FAILED_TO_RECORD_EVENT"}')
             return
@@ -67,6 +83,10 @@ async def _event(req):
     await return_json_ok(req, '{"result": "FAILED_TO_DECODE_JSON"}')
     return
 
+# /get-seed
+## 認証用の文字列のシード部分をノードに配信する
+## 認証は トークン + シード の文字列を SHA256 でハッシュ化したものを
+## データをやり取りするノード間でそれぞれ生成し、その整合性でノードを認証する
 @app.route("/get-seed")
 async def _get_seed(req):
     seed = str(random.getrandbits(32)) + str(random.getrandbits(32)) + str(random.getrandbits(32))
@@ -83,6 +103,8 @@ async def _get_seed(req):
     
     return
 
+# /notify-done
+## イベントの発報が完了した状態を他のノードから受け取る
 @app.route("/notify-done")
 async def _notify_done(req):
     # HTTP ヘッダーの確認
@@ -112,6 +134,7 @@ async def _notify_done(req):
             return
 
     if req_json is not None:
+        # ノードを認証する
         auth_hash = req_json["hash"]
         auth_hash_ok = await utils.use_auth_hash(auth_hash)
         if not auth_hash_ok:
