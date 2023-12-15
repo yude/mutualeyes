@@ -1,3 +1,6 @@
+# An asynchronous HTTP Client for Micro- and cPython
+# GitHub: https://github.com/DrTom/py-u-async-http-client
+
 try:
     import uasyncio as asyncio
 except ImportError:

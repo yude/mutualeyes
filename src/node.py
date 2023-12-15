@@ -45,9 +45,6 @@ async def check_node(target: Node) -> str | None:
         while True:
             req_dict = {
                 "url": target.endpoint,
-                "headers": {
-                    "Accept": "application/json"
-                }
             }
 
             if config.LOG_LEVEL == "ALL":

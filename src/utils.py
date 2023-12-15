@@ -1,5 +1,7 @@
 import utime
 import network
+import hashlib
+import binascii
 
 import config
 import utils
@@ -105,3 +107,27 @@ def get_healthy_node():
     healthy.sort()
     
     return healthy
+
+class AuthHash:
+    def __init__(self, hash: str, created_on: int = utime.time()):
+        self.hash = hash
+        self.created_on = created_on
+
+hashes: list[AuthHash] = []
+
+async def get_auth_hash(seed: str)->str:
+    res = hashlib.sha256()
+    token_plus_hash = bytes(config.TOKEN + seed, 'utf-8')
+    res.update(token_plus_hash)
+
+    return binascii.hexlify(res.digest()).decode('utf-8')
+
+# use_auth_hash
+## 入力されたハッシュ値が認証用のものとして正しいか確認します。
+## 返り値: 正しければ True, 間違っていれば False を返します。
+async def use_auth_hash(input_hash: str)->bool:
+    for hash in hashes:
+        if hash.hash == input_hash:
+            return True
+    
+    return False

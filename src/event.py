@@ -39,9 +39,11 @@ class EventQuery:
         self,
         event: dict,
         sent_from: str,
+        hash: str,
     ):
         self.event = event
         self.sent_from = sent_from
+        self.hash = hash
 
 
 events: dict[str, Event] = {}
@@ -169,6 +171,29 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
 
     res_dict = None
 
+    # Retrieve seed for secured connection.
+    try:
+        req_dict = {
+                "url": n.endpoint + "/get-seed",
+            }
+
+        res_dict = await uasyncio.wait_for_ms(http_client.request(req_dict), 5000)
+
+    except Exception:
+        if config.LOG_LEVEL == "ALL":
+            utils.print_log("[Event] Failed to secure connection w/ node " + n.name + ".")
+        return
+
+    if res_dict['status']['code'] != 200:
+        if config.LOG_LEVEL == "ALL":
+            utils.print_log("[Event] Failed to secure connection w/ node  " + n.name + ".")
+        return
+    
+    query.hash = await utils.get_auth_hash(
+        res_dict['body'].decode('utf-8').replace('\n', '').replace('\r', '')
+    )
+
+    # Send the event information to other node.
     try:
         while True:
             req_dict = {
@@ -203,7 +228,8 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
 async def share_event_parallel(path: str, event: Event, event_id: str):
     q = EventQuery(
         event=event.__dict__,
-        sent_from=utils.whoami()
+        sent_from=utils.whoami(),
+        hash="",
     )
 
     if config.LOG_LEVEL == "ALL":

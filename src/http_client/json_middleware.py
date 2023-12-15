@@ -12,13 +12,13 @@ def prepare_request(request):
         request["headers"] = headers
     return request
 
-def prepare_resonse(response):
+def prepare_response(response):
     if response.get("headers",{}).get("Content-Type","").startswith("application/json"):
         response["body"] = json.loads(response.get("body","null"))
     return response
 
 async def _wrap(request,send):
-    return prepare_resonse(await send(prepare_request(request)))
+    return prepare_response(await send(prepare_request(request)))
 
 async def wrap(send):
     async def s(request):
