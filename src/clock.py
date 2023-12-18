@@ -8,7 +8,7 @@ def set_clock():
     """
     NTP を用いて RTC クロックの時刻を校正します。
     """
-    # Retry 3 times
+    # Retry constrants.MAX_RETRY_NTP times
     for i in range(1, constrants.MAX_RETRY_NTP + 1):
         try:
             ntptime.settime()

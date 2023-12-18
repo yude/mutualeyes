@@ -11,6 +11,10 @@ NODES += [node.Node("a", "http://a:3000")]
 NODES += [node.Node("b", "http://b:3000")]
 NODES += [node.Node("c", "http://c:3000")]
 
+# ログ レベル
+# ALL または DEFAULT
+LOG_LEVEL = "ALL"
+
 # Wi-Fi
 ## 国別コード
 WIFI_COUNTRY_CODE = "JP"

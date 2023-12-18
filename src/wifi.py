@@ -45,6 +45,6 @@ def prepare_wifi():
         )
 
     print("Wi-Fi connection is ready! ifconfig:", wlan.ifconfig())
-    print(utils.stringify_mac(wlan.config('mac')))
+    print(f"MAC address: {utils.stringify_mac(wlan.config('mac'))}")
 
     return wlan
