@@ -1,6 +1,5 @@
 import uasyncio
-import urequests
-import utime
+import clock
 import copy
 import uuid
 import http_client.core as http_client
@@ -9,7 +8,6 @@ import http_client.json_middleware as json_middleware
 import utils
 import config
 import event
-import constrants
 
 
 class Node:
@@ -145,7 +143,7 @@ async def register_event(node: Node, event_type: str):
     # 新しくイベントの構造を定義する
     new_event = event.Event(
         origin=copy.copy(node.name),
-        created_on=utime.time(),
+        created_on=clock.get_epoch(),
         type=event_type,
         status="WAIT_CONFIRM",
         worker_node=[],
@@ -172,4 +170,4 @@ async def register_event(node: Node, event_type: str):
         event.events[str(new_event_uuid)],
         str(new_event_uuid)
     )
-    utils.print_log("[Event] Shared event " + str(new_event_uuid) + " to all nodes.")
+    utils.print_log("[Event] Shared event " + str(new_event_uuid) + " to all NODES.")

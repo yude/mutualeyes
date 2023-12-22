@@ -5,6 +5,7 @@ import binascii
 
 import config
 import utils
+import clock
 
 def auto_decode(query: bytes, encoding=["utf8", "cp1252"]):
     for i in encoding:
@@ -47,7 +48,7 @@ def format_epoch(epoch: int) -> str:
 
 def print_log(msg: str):
     res = f"[{utime.ticks_ms()}] "
-    res += utils.format_epoch(utime.time())
+    res += utils.format_epoch(clock.get_epoch())
     res += ": " + msg
     print(res)
 
@@ -121,7 +122,7 @@ class AuthHash:
     """
     ノード認証用のハッシュ値
     """
-    def __init__(self, hash: str, created_on: int = utime.time()):
+    def __init__(self, hash: str, created_on: int = clock.get_epoch()):
         self.hash = hash
         self.created_on = created_on
 
@@ -147,3 +148,6 @@ async def use_auth_hash(input_hash: str)->bool:
             return True
     
     return False
+
+def number_nodes()->int:
+    return len(config.NODES)

@@ -1,5 +1,6 @@
 import event
 import constrants
+import clock
 import utils
 import config
 import http_client.core as http_client
@@ -31,11 +32,11 @@ async def get_notify_worker(e: event.Event) -> str | None:
         return None
 
     # 入力されたイベントの通知を配信すると確定してからの経過時間 (秒)
-    diff = abs(utime.time() - e.majority_ok_on)
+    diff = abs(clock.get_epoch() - e.majority_ok_on)
 
     # このイベントを認知しているノードのなかで、誰が配信するかを決定する
     # node_index は登録されているノードの名前を ascii 順に並べたときのインデックス
-    node_index = math.floor(diff / constrants.EVENT_DELIVERY_TIMEOUT)
+    node_index = math.floor(diff / constrants.EVENT_DELIVERY_TIMEOUT * utils.number_nodes())
     if node_index > len(e.worker_node) - 1:
         node_index = len(e.worker_node) - 1
 
@@ -115,6 +116,6 @@ async def delivery(event_id: str) -> bool:
             event_id
         )
     
-    utils.print_log("[Event] Shared `DELIVERED` status of " + event_id + " to all nodes.")
+    utils.print_log("[Event] Shared `DELIVERED` status of " + event_id + " to all NODES.")
 
     return succeeded

@@ -1,4 +1,4 @@
-import utime
+import clock
 import json
 import copy
 import uasyncio
@@ -71,7 +71,7 @@ def query_to_event(json_str: str) -> Event | None:
         origin=q["event"]["origin"],
         created_on=int(q["event"]["created_on"]),
         type=q["event"]["type"],
-        status="WAIT_CONFIRM",
+        status=q["event"]["status"],
         worker_node=[],
         majority_ok_on=None
     )
@@ -95,7 +95,7 @@ async def identify_event(target: Event) -> Event | None:
             # イベントの発生日時の差が一定の値に収まっているかを確認する
             if (
                 abs(events[e].created_on - target.created_on)
-                < constrants.SAME_EVENT_TIME_LAG * 60
+                < utils.number_nodes() * constrants.SAME_EVENT_TIME_LAG * 60
             ):
                 if events[e].type == target.type:
                     if config.LOG_LEVEL == "ALL":
@@ -119,7 +119,7 @@ async def check_event(event_id: str) -> str:
     e = events[event_id]
 
     # タイムアウト、または古いイベントは削除
-    if abs(e.created_on - utime.time()) > 60 * constrants.CLEAR_FROM_CACHE:
+    if abs(e.created_on - clock.get_epoch()) > 60 * constrants.CLEAR_FROM_CACHE * utils.number_nodes():
         events.pop(event_id)
 
         if config.LOG_LEVEL == "ALL":
@@ -133,7 +133,7 @@ async def check_event(event_id: str) -> str:
 
     # 通知の配信の決定待ち
     if e.status == "WAIT_CONFIRM":
-        if abs(e.created_on - utime.time()) > constrants.EVENT_ACKNOWLEDGE_TIMEOUT:
+        if abs(e.created_on - clock.get_epoch()) > constrants.EVENT_ACKNOWLEDGE_TIMEOUT * utils.number_nodes():
             # 過半数が合意したかを確認
             try:
                 ratio = len(e.worker_node) / len(utils.get_healthy_node())
@@ -141,8 +141,8 @@ async def check_event(event_id: str) -> str:
                 # 自分しか稼働しているノードが存在しないとき、強制的に通知待機状態にする
                 ratio = 1.0
             if ratio >= 0.5:
-                e.majority_ok_on = utime.time()
-                utils.print_log("[Event] Majority of nodes agreed w/ event " + event_id + ".")
+                e.majority_ok_on = clock.get_epoch()
+                utils.print_log("[Event] Majority of NODES agreed w/ event " + event_id + ".")
                 e.status = "WAIT_DELIVERY"
             else:
                 # タイムアウトしたイベントは削除
@@ -154,6 +154,10 @@ async def check_event(event_id: str) -> str:
     if e.status == "WAIT_DELIVERY":
         delivery_actor = await notify.get_notify_worker(e)
         if delivery_actor == utils.whoami():
+
+            if delivery_actor == e.origin:
+                return event_id
+            
             succeeded = await notify.delivery(event_id)
             if succeeded:
                 e.status = "DELIVERED"
@@ -254,7 +258,7 @@ async def share_event_parallel(path: str, event: Event, event_id: str):
     )
 
     if config.LOG_LEVEL == "ALL":
-        utils.print_log("Sharing event " + event_id + " to other nodes. Request body is following:")
+        utils.print_log("Sharing event " + event_id + " to other NODES. Request body is following:")
         print(json.dumps(q.__dict__))
 
     for n in config.NODES:

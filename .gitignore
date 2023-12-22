@@ -130,7 +130,7 @@ dmypy.json
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
+!.vscode/config.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
@@ -147,4 +147,4 @@ dmypy.json
 !src/lib
 
 # Configuration
-config.py
+settings.py

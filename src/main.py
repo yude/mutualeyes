@@ -1,7 +1,6 @@
 import uasyncio as asyncio
 import machine
 import httpd
-import utime
 import clock
 
 import utils
@@ -67,7 +66,7 @@ if __name__ == "__main__":
             # Wi-Fi SSID
             wlan.config("essid"),
             # Clock
-            utils.format_epoch(utime.time())
+            utils.format_epoch(clock.get_epoch())
         )
     )
 

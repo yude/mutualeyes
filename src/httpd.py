@@ -1,8 +1,7 @@
 import json
 import utils
 import uuid
-import utime
-import random
+import clock
 
 import event
 import config
@@ -90,14 +89,14 @@ async def _event(req):
 ## データをやり取りするノード間でそれぞれ生成し、その整合性でノードを認証する
 @app.route("/get-seed")
 async def _get_seed(req):
-    seed = str(utime.time())
+    seed = str(clock.get_epoch())
     await return_ok(req, seed)
 
     new_hash = await utils.get_auth_hash(seed)
     utils.hashes += [
         utils.AuthHash(
             new_hash,
-            utime.time()
+            clock.get_epoch()
         )
     ]
     print(f"New hash: {new_hash}")
