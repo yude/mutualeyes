@@ -183,29 +183,30 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
 
     res_dict = None
 
-    # 認証のためのシード部分を相手ノードから取得する
-    try:
-        req_dict = {
-                "url": n.endpoint + "/get-seed",
-            }
+    if config.USE_AUTH:
+        # 認証のためのシード部分を相手ノードから取得する
+        try:
+            req_dict = {
+                    "url": n.endpoint + "/get-seed",
+                }
 
-        res_dict = await uasyncio.wait_for_ms(http_client.request(req_dict), 5000)
+            res_dict = await uasyncio.wait_for_ms(http_client.request(req_dict), 5000)
 
-    except Exception:
-        if config.LOG_LEVEL == "ALL":
-            utils.print_log("[Event] Failed to secure connection w/ node " + n.name + ".")
-        return
+        except Exception:
+            if config.LOG_LEVEL == "ALL":
+                utils.print_log("[Event] Failed to secure connection w/ node " + n.name + ".")
+            return
 
-    if res_dict['status']['code'] != 200:
-        if config.LOG_LEVEL == "ALL":
-            utils.print_log("[Event] Failed to secure connection w/ node  " + n.name + ".")
-        return
-    
-    # 取得したシード値は bytes 型で b'シード'\r\n のようになっているため、シード値のみ取り出す
-    # 取り出したものを utils.get_auth_hash() に入力してハッシュ化する
-    query.hash = await utils.get_auth_hash(
-        res_dict['body'].decode('utf-8').replace('\n', '').replace('\r', '')
-    )
+        if res_dict['status']['code'] != 200:
+            if config.LOG_LEVEL == "ALL":
+                utils.print_log("[Event] Failed to secure connection w/ node " + n.name + ".")
+            return
+        
+        # 取得したシード値は bytes 型で b'シード'\r\n のようになっているため、シード値のみ取り出す
+        # 取り出したものを utils.get_auth_hash() に入力してハッシュ化する
+        query.hash = await utils.get_auth_hash(
+            res_dict['body'].decode('utf-8').replace('\n', '').replace('\r', '')
+        )
 
     # 相手のノードにイベントの情報を送信する
     try:
@@ -220,7 +221,7 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
             }
 
             r = await json_middleware.wrap(http_client.request)
-            res_dict = await uasyncio.wait_for_ms(r(req_dict), 1500)
+            res_dict = await uasyncio.wait_for_ms(r(req_dict), 5000)
 
             try:
                 _ = res_dict['status']['code']
@@ -237,6 +238,7 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
     if res_dict['status']['code'] != 200:
         if config.LOG_LEVEL == "ALL":
             utils.print_log("[Event] Failed to share event " + event_id + " to node " + n.name + ".")
+            print(res_dict)
         return
 
 async def share_event_parallel(path: str, event: Event, event_id: str):
@@ -255,5 +257,5 @@ async def share_event_parallel(path: str, event: Event, event_id: str):
         utils.print_log("Sharing event " + event_id + " to other nodes. Request body is following:")
         print(json.dumps(q.__dict__))
 
-    tasks = [share_event(path, event, event_id, q, n) for n in config.NODES]
-    await uasyncio.gather(*tasks)
+    for n in config.NODES:
+        await share_event(path, event, event_id, q, n)

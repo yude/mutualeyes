@@ -60,7 +60,7 @@ async def check_node(target: Node) -> str | None:
                 print(req_dict)
             
             r = await json_middleware.wrap(http_client.request)
-            res_dict = await uasyncio.wait_for_ms(r(req_dict), 4000)
+            res_dict = await uasyncio.wait_for_ms(r(req_dict), 6000)
 
             try:
                 _ = res_dict['status']['code']
@@ -127,8 +127,8 @@ async def check_node_parallel():
     check_node() を uasyncio を使って非同期的に実行します。
     """
 
-    tasks = [check_node(node) for node in config.NODES]
-    await uasyncio.gather(*tasks)
+    for node in config.NODES:
+        await check_node(node)
 
     if config.LOG_LEVEL == "ALL":
         print("Current node status:")

@@ -8,7 +8,7 @@ EVENT_ACKNOWLEDGE_TIMEOUT = 15
 EVENT_DELIVERY_TIMEOUT = 20
 
 # イベント一覧のキャッシュから削除する時間 (秒, int)
-CLEAR_FROM_CACHE = 60
+CLEAR_FROM_CACHE = 120
 
 # NTP サーバーから時刻を取得する際の最大再試行回数
 MAX_RETRY_NTP = 5

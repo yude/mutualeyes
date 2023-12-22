@@ -56,12 +56,13 @@ async def _event(req):
         # クエリの解釈に成功した場合
         if query is not None:
             # ノードを認証する
-            auth_hash = req_json["hash"]
-            auth_hash_ok = await utils.use_auth_hash(auth_hash)
-            if not auth_hash_ok:
-                if config.LOG_LEVEL == "ALL":
-                    utils.print_log("Received an invalid request regarding authentication.")
-                return
+            if config.USE_AUTH:
+                auth_hash = req_json["hash"]
+                auth_hash_ok = await utils.use_auth_hash(auth_hash)
+                if not auth_hash_ok:
+                    if config.LOG_LEVEL == "ALL":
+                        utils.print_log("Received an invalid request regarding authentication.")
+                    return
 
             # 同じイベントをすでに認識していないか確認する
             identified = await event.identify_event(query)
@@ -89,7 +90,7 @@ async def _event(req):
 ## データをやり取りするノード間でそれぞれ生成し、その整合性でノードを認証する
 @app.route("/get-seed")
 async def _get_seed(req):
-    seed = str(random.getrandbits(32)) + str(random.getrandbits(32)) + str(random.getrandbits(32))
+    seed = str(utime.time())
     await return_ok(req, seed)
 
     new_hash = await utils.get_auth_hash(seed)
@@ -135,12 +136,13 @@ async def _notify_done(req):
 
     if req_json is not None:
         # ノードを認証する
-        auth_hash = req_json["hash"]
-        auth_hash_ok = await utils.use_auth_hash(auth_hash)
-        if not auth_hash_ok:
-            if config.LOG_LEVEL == "ALL":
-                utils.print_log("Received an invalid request regarding authentication.")
-            return
+        if config.USE_AUTH:
+            auth_hash = req_json["hash"]
+            auth_hash_ok = await utils.use_auth_hash(auth_hash)
+            if not auth_hash_ok:
+                if config.LOG_LEVEL == "ALL":
+                    utils.print_log("Received an invalid request regarding authentication.")
+                return
 
         query = event.query_to_event(req_body)
 
