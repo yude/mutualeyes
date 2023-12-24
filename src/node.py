@@ -52,10 +52,6 @@ async def check_node(target: Node) -> str | None:
             req_dict = {
                 "url": target.endpoint,
             }
-
-            if config.LOG_LEVEL == "ALL":
-                utils.print_log("[Monitor] Request to " + target.name + " for periodical checking is following:")
-                print(req_dict)
             
             r = await json_middleware.wrap(http_client.request)
             res_dict = await uasyncio.wait_for_ms(r(req_dict), 6000)

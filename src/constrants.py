@@ -5,7 +5,7 @@ SAME_EVENT_TIME_LAG = 5
 EVENT_ACKNOWLEDGE_TIMEOUT = 8
 
 # 他のノードに通知の配信を交代させるまでの待機時間 (秒, int)
-EVENT_DELIVERY_TIMEOUT = 4
+EVENT_DELIVERY_TIMEOUT = 8
 
 # イベント一覧のキャッシュから削除する時間 (分, int)
 CLEAR_FROM_CACHE = 20
