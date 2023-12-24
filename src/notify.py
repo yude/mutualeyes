@@ -66,7 +66,7 @@ async def send_to_ntfy(event_id: str) -> bool:
             }
 
             if config.LOG_LEVEL == "ALL":
-                utils.print_log("Sending notification for event " + event_id + " to ntfy.sh. Request body:")
+                utils.print_log("イベント " + event_id + " を ntfy.sh に発報します。リクエスト ボディは以下の通りです:")
                 print(req_dict)
 
             r = await json_middleware.wrap(http_client.request)
@@ -84,7 +84,7 @@ async def send_to_ntfy(event_id: str) -> bool:
         return False
 
     if res_dict['status']['code'] != 200:
-        msg = f"[Warning] Failed to deliver event {event_id} to ntfy.sh. (non-200 code"
+        msg = f"[警告] イベント {event_id} を ntfy.sh に送信できませんでした。 (non-200 code"
         try:
             msg += ", " + res_dict['body'] + ")"
         except KeyError:
@@ -116,6 +116,6 @@ async def delivery(event_id: str) -> bool:
             event_id
         )
     
-    utils.print_log("[Event] Shared `DELIVERED` status of " + event_id + " to all NODES.")
+    utils.print_log("[Event] イベント " + event_id + " を発報したことを他のノードと共有しました。")
 
     return succeeded

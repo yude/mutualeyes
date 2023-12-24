@@ -47,10 +47,11 @@ def format_epoch(epoch: int) -> str:
     )
 
 def print_log(msg: str):
-    res = f"[{utime.ticks_ms()}] "
-    res += utils.format_epoch(clock.get_epoch())
-    res += ": " + msg
-    print(res)
+    epoch_source = clock.get_epoch()
+    if clock.EPOCH_1970:
+        epoch_source += 946684800
+
+    print(f"{utils.format_epoch(epoch_source)}: {msg}")
 
 def format_event_type(event_type: str) -> str:
     """

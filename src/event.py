@@ -35,7 +35,7 @@ class Event:
         return self.created_on < other.created_on
 
     def __str__(self):
-        return f'origin: {self.origin}, created_on: {self.created_on}, type: {self.type}, status: {self.status}, worker_node: {self.worker_node}, majority_ok_on: {self.majority_ok_on}'
+        return f'発生元: {self.origin}, 作成日時: {self.created_on}, 種類: {self.type}, 状態: {self.status}, ワーカー: {self.worker_node}, 合意日時: {self.majority_ok_on}'
 
 class EventQuery:
     """
@@ -99,11 +99,11 @@ async def identify_event(target: Event) -> Event | None:
             ):
                 if events[e].type == target.type:
                     if config.LOG_LEVEL == "ALL":
-                        utils.print_log("Identified known event: \n" + str(target.__dict__))
+                        utils.print_log("既知のイベントとして判別しました: \n" + str(target.__dict__))
                     return events[e]
 
     if config.LOG_LEVEL == "ALL":
-        utils.print_log("Identified new event: \n" + str(target.__dict__))
+        utils.print_log("未知のイベントとして判別しました: \n" + str(target.__dict__))
 
     return None
 
@@ -123,7 +123,7 @@ async def check_event(event_id: str) -> str:
         events.pop(event_id)
 
         if config.LOG_LEVEL == "ALL":
-            utils.print_log("[Event] Event " + event_id + " is deleted from cache.")
+            utils.print_log("[Event] イベント " + event_id + " はキャッシュから削除されました。")
 
         return event_id
 
@@ -142,12 +142,12 @@ async def check_event(event_id: str) -> str:
                 ratio = 1.0
             if ratio >= 0.5:
                 e.majority_ok_on = clock.get_epoch()
-                utils.print_log("[Event] Majority of NODES agreed w/ event " + event_id + ".")
+                utils.print_log("[Event] 過半数のノードがイベント " + event_id + " の発生を合意しました。")
                 e.status = "WAIT_DELIVERY"
             else:
                 # タイムアウトしたイベントは削除
                 events.pop(event_id)
-                utils.print_log("[Event] Event " + event_id + " is timed out, deleted.")
+                utils.print_log("[Event] イベント " + event_id + " は合意されませんでした。削除されます。")
             return event_id
 
     # 通知の配信待ち
@@ -161,7 +161,7 @@ async def check_event(event_id: str) -> str:
             succeeded = await notify.delivery(event_id)
             if succeeded:
                 e.status = "DELIVERED"
-                utils.print_log("[Event] Event " + event_id + " is delivered.")
+                utils.print_log("[Event] イベント " + event_id + " は発報されました。")
 
     return event_id
 
@@ -171,7 +171,7 @@ async def check_event_parallel():
     並列的にイベントを処理します。
     """
     if config.LOG_LEVEL == "ALL":
-        print("Current events:")
+        print("有効なイベント:")
         for k, v in events.items():
             print(f"[{k}] {v}")
     tasks = [check_event(event_id) for event_id in events.keys()]
@@ -198,12 +198,12 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
 
         except Exception:
             if config.LOG_LEVEL == "ALL":
-                utils.print_log("[Event] Failed to secure connection w/ node " + n.name + ".")
+                utils.print_log("[Event] ノード " + n.name + " と安全な接続を確立できませんでした。")
             return
 
         if res_dict['status']['code'] != 200:
             if config.LOG_LEVEL == "ALL":
-                utils.print_log("[Event] Failed to secure connection w/ node " + n.name + ".")
+                utils.print_log("[Event] ノード " + n.name + " と安全な接続を確立できませんでした。")
             return
         
         # 取得したシード値は bytes 型で b'シード'\r\n のようになっているため、シード値のみ取り出す
@@ -236,12 +236,12 @@ async def share_event(path: str, event: Event, event_id: str, query: EventQuery,
 
     except Exception:
         if config.LOG_LEVEL == "ALL":
-            utils.print_log("[Event] Failed to share event " + event_id + " to node " + n.name + ".")
+            utils.print_log("[Event] イベント " + event_id + " をノード " + n.name + " と共有できませんでした。")
         return
 
     if res_dict['status']['code'] != 200:
         if config.LOG_LEVEL == "ALL":
-            utils.print_log("[Event] Failed to share event " + event_id + " to node " + n.name + ".")
+            utils.print_log("[Event] イベント " + event_id + " をノード " + n.name + " と共有できませんでした。")
             print(res_dict)
         return
 
@@ -258,7 +258,7 @@ async def share_event_parallel(path: str, event: Event, event_id: str):
     )
 
     if config.LOG_LEVEL == "ALL":
-        utils.print_log("Sharing event " + event_id + " to other NODES. Request body is following:")
+        utils.print_log("イベント " + event_id + " を他のノードと共有します。リクエスト ボディは以下の通りです:")
         print(json.dumps(q.__dict__))
 
     for n in config.NODES:

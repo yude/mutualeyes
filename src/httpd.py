@@ -38,8 +38,8 @@ async def _event(req):
     req_body = (await req.read(content_length)).decode()
 
     if config.LOG_LEVEL == "ALL":
-        utils.print_log("New request received for event sharing.")
-        print("Request body: " + req_body)
+        utils.print_log("イベント共有リクエストを受け取りました。")
+        print("リクエスト ボディ: " + req_body)
 
     req_json = None
     if req_body is not None:
@@ -60,7 +60,7 @@ async def _event(req):
                 auth_hash_ok = await utils.use_auth_hash(auth_hash)
                 if not auth_hash_ok:
                     if config.LOG_LEVEL == "ALL":
-                        utils.print_log("Received an invalid request regarding authentication.")
+                        utils.print_log("不正なリクエストを受け取りました。")
                     return
 
             # 同じイベントをすでに認識していないか確認する
@@ -99,7 +99,8 @@ async def _get_seed(req):
             clock.get_epoch()
         )
     ]
-    print(f"New hash: {new_hash}")
+
+    # print(f"New hash: {new_hash}")
     
     return
 
@@ -121,8 +122,8 @@ async def _notify_done(req):
     # Body を読んで JSON として正しいか確認する
     req_body = (await req.read(content_length)).decode()
     if config.LOG_LEVEL == "ALL":
-        utils.print_log("New request received for syncing notification status.")
-        print("Request body: " + req_body)
+        utils.print_log("イベントの状態を共有するリクエストを受け取りました。")
+        print("リクエスト ボディ: " + req_body)
 
     req_json = None
     if req_body is not None:
@@ -140,7 +141,7 @@ async def _notify_done(req):
             auth_hash_ok = await utils.use_auth_hash(auth_hash)
             if not auth_hash_ok:
                 if config.LOG_LEVEL == "ALL":
-                    utils.print_log("Received an invalid request regarding authentication.")
+                    utils.print_log("不正なリクエストを受け取りました。")
                 return
 
         query = event.query_to_event(req_body)

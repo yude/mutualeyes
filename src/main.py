@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     # 自分のノードが特定できているかを確認
     if utils.whoami() is None:
-        raise RuntimeError("Could not detect who am I.")
+        raise RuntimeError("自分のノードを特定できません")
 
     # 時刻を設定
     clock.set_clock()
@@ -38,36 +38,24 @@ if __name__ == "__main__":
 
     ## 起動メッセージ
     print(
-        """
+        f"""
             __         __              __    _    
            / /______ _/ /______ ______/ /_  (_)___
           / //_/ __ `/ //_/ __ `/ ___/ __ \/ /_  /
          / ,< / /_/ / ,< / /_/ (__  ) / / / / / /_
         /_/|_|\__,_/_/|_|\__,_/____/_/ /_/_/ /___/
 
-        Welcome to kakashiz running on {},
-        Decentralized alive-monitoring system for
-        microcomputers.
+        情報:
 
-        Machine information:
-        [Network]
-         - Local IP address: {}
-         - MAC address: {}
-         - Wi-Fi SSID: {}
-        [Clock]
-         - Current RTC time: {}
-    """.format(
-            # Whoami
-            utils.whoami(),
-            # Local IP address
-            wlan.ifconfig()[0],
-            # MAC address
-            utils.stringify_mac(wlan.config('mac')),
-            # Wi-Fi SSID
-            wlan.config("essid"),
-            # Clock
-            utils.format_epoch(clock.get_epoch())
-        )
+        [一般]
+         - ノード名: {utils.whoami()}
+        [ネットワーク]
+         - プライベート IP アドレス: {wlan.ifconfig()[0]}
+         - MAC アドレス: {utils.stringify_mac(wlan.config('mac'))}
+         - Wi-Fi アクセスポイント: {wlan.config("essid")}
+        [時計]
+         - RTC 時刻: {utils.format_epoch(clock.get_epoch())}
+    """
     )
 
     # タスクを起動

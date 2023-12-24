@@ -29,7 +29,7 @@ class Node:
         return self.name < other.name
 
     def __str__(self):
-        return f"name: {self.name}, status: {self.status}, down_count: {self.down_count}"
+        return f"ノード名: {self.name}, 状態: {self.status}, 無反応カウント: {self.down_count}"
 
 async def check_node(target: Node) -> str | None:
     """
@@ -43,7 +43,7 @@ async def check_node(target: Node) -> str | None:
         return None
 
     if config.LOG_LEVEL == "ALL":
-        utils.print_log("[Monitor] Checking node {}...".format(target.name))
+        utils.print_log("[監視] ノード {} の動作状況を確認しています ...".format(target.name))
 
     res_dict = None
 
@@ -62,20 +62,20 @@ async def check_node(target: Node) -> str | None:
                 pass
             else:
                 if config.LOG_LEVEL == "ALL":
-                    utils.print_log("[Monitor] Response from " + target.name + " for periodical checking is following:")
+                    utils.print_log("[監視] ノード " + target.name + " からレスポンスを受け取りました:")
                     print(res_dict)
                 break
 
     except uasyncio.TimeoutError:
         if config.LOG_LEVEL == "ALL":
-            utils.print_log("[Monitor] Request to " + target.name + " is timed out.")
+            utils.print_log("[監視] ノード " + target.name + " へのリクエストがタイムアウトしました。")
 
         await down_node(target)
         return str(target.name)
 
     if res_dict['status']['code'] != 200:
         if config.LOG_LEVEL == "ALL":
-            utils.print_log("[Monitor] " + target.name + " is returning non-200 code.")
+            utils.print_log("[監視] ノード " + target.name + " から不正なレスポンスを受け取りました。 (non-200 code)")
             
         await down_node(target)
         return str(target.name)
@@ -88,7 +88,7 @@ async def check_node(target: Node) -> str | None:
         target.status = "NODE_UP"
 
     if config.LOG_LEVEL == "ALL":
-        utils.print_log("[Monitor] Node {} is up.".format(target.name))
+        utils.print_log("[監視] ノード {} は稼働しています。".format(target.name))
 
     target.down_count = 0
     return str(target.name)
@@ -96,22 +96,22 @@ async def check_node(target: Node) -> str | None:
 async def down_node(target: Node):
     if target.status == "NODE_DOWN":
         if config.LOG_LEVEL == "ALL":
-            utils.print_log("[Monitor] Node {} is still down.".format(target.name))
+            utils.print_log("[監視] ノード {} はまだ障害を起こしています。".format(target.name))
         return
 
     if target.status != "NODE_DOWN":
         target.down_count = target.down_count + 1
 
     if target.down_count > 2 and target.status != "NODE_DOWN":
-        utils.print_log("[Monitor] Node {} is now down.".format(target.name))
+        utils.print_log("[監視] Node {} is now down.".format(target.name))
         target.status = "NODE_DOWN"
 
         await register_event(target, "NODE_DOWN")
     else:
-        utils.print_log("[Monitor] Node {} did not respond. (Confirmation stage: {} / 2)".format(target.name, target.down_count))
+        utils.print_log("[監視] ノード {} から反応が返ってきませんでした。 (確認ステージ: {} / 2)".format(target.name, target.down_count))
 
 async def recover_node(target: Node):
-    utils.print_log("[Monitor] Node {} is now up.".format(target.name))
+    utils.print_log("[監視] ノード {} が復旧しました。".format(target.name))
     target.status = "NODE_UP"
     target.down_count = 0
     await register_event(target, "NODE_UP")
@@ -125,7 +125,7 @@ async def check_node_parallel():
         await check_node(node)
 
     if config.LOG_LEVEL == "ALL":
-        print("Current node status:")
+        print("ノードの状況:")
         for node in config.NODES:
             if utils.whoami() != node.name:
                 print(node)
@@ -148,7 +148,7 @@ async def register_event(node: Node, event_type: str):
     new_event.worker_node.append(utils.whoami())
 
     if config.LOG_LEVEL == "ALL":
-        utils.print_log("Trying to register event, the details are following:\n" + str(new_event.__dict__))
+        utils.print_log("イベントを登録しようとしています。内容は以下の通りです:\n" + str(new_event.__dict__))
 
     # 重複していれば、そこで処理を終わる
     identified = await event.identify_event(new_event)
@@ -158,7 +158,7 @@ async def register_event(node: Node, event_type: str):
     # 重複していなければ、登録する
     new_event_uuid = uuid.uuid4()
     event.events[str(new_event_uuid)] = new_event
-    utils.print_log("[Event] New event registered: " + str(new_event_uuid))
+    utils.print_log("[Event] イベントを登録しました: " + str(new_event_uuid))
 
     # 他のノードにこのイベントを共有する
     await event.share_event_parallel(
@@ -166,4 +166,4 @@ async def register_event(node: Node, event_type: str):
         event.events[str(new_event_uuid)],
         str(new_event_uuid)
     )
-    utils.print_log("[Event] Shared event " + str(new_event_uuid) + " to all NODES.")
+    utils.print_log("[Event] イベント " + str(new_event_uuid) + " をすべてのノードに共有しました。")

@@ -16,20 +16,20 @@ def set_clock():
             ntptime.settime()
         except Exception as e:
             print(
-                "[Clock] Failed to retrieve current time from NTP, retrying. (Retry: {i}/{max_i})".format(
+                "[RTC] NTP サーバーから現在日時を取得できませんでした。再試行します。 ({i}/{max_i})".format(
                     i=i, max_i=constrants.MAX_RETRY_NTP
                 )
             )
             utime.sleep(2)
         else:
-            print("[Clock] Successfully retrieved current time.")
+            print("[RTC] 現在日時を取得しました。")
             # エポックタイム 0 を 2000/1/1 00:00:00 UTC に統一する
             if utime.gmtime(0)[0] == 1970:
                 EPOCH_1970 = True
             return True
 
-    print("[Clock] Failed to retrieve current time NTP, this system may won't work.")
-    print("        Please re-check your Internet connection and configuration.")
+    print("[RTC] NTP サーバーから現在時刻を取得できませんでした。システムが正常に稼働しない可能性があります。")
+    print("        インターネット接続や設定を見直してください。")
     return False
 
 def get_epoch():
