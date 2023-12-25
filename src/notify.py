@@ -80,7 +80,7 @@ async def send_to_ntfy(event_id: str) -> bool:
                 break
 
     except Exception as e:
-        utils.print_log(f"[Warning] Failed to deliver event {event_id} to ntfy.sh. ({e})")
+        utils.print_log(f"[警告] イベント {event_id} を ntfy.sh に送信できませんでした。 ({e})")
         return False
 
     if res_dict['status']['code'] != 200:

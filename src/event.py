@@ -161,7 +161,7 @@ async def check_event(event_id: str) -> str:
             succeeded = await notify.delivery(event_id)
             if succeeded:
                 e.status = "DELIVERED"
-                utils.print_log("[Event] イベント " + event_id + " は発報されました。")
+                utils.print_log(f"[Event] イベント {event_id} は発報されました。イベントの発生から {clock.get_epoch() - e.created_on} 秒かかりました。")
 
     return event_id
 
