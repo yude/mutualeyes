@@ -1,4 +1,4 @@
-# kakashiz
+# mutualeyes
 
 Decentralized node monitoring system
 
