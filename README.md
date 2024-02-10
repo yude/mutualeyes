@@ -1,6 +1,6 @@
-# kakashiz
+# mutualeyes
 
-kakashiz is easy-to-ported decentralized monitoring system mainly developed for microcomputers.\
+mutualeyes is easy-to-ported decentralized connectivity monitoring system mainly developed for microcomputers.\
 This branch contains implementation in MicroPython.
 
 ## Development
